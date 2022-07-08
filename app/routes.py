@@ -55,5 +55,4 @@ def register():
 @login_required
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    modules = user.get_completed_modules()
-    return render_template('user.html', user=user, modules=modules)
+    return render_template('user.html', title='User Profile', user=user)

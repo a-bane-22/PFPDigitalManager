@@ -10,7 +10,6 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    certifications = db.relationship('Certificate', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -21,13 +20,19 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_completed_modules(self):
-        name_list = []
-        for certificate in self.certifications:
-            name_list.append(certificate.get_module_name)
-        return name_list
-
 
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+
+class Client(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(32), index=True)
+    last_name = db.Column(db.String(32), index=True)
+    middle_name = db.Column(db.String(32), index=True)
+    dob = db.Column(db.Date, index=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    cell_phone = db.Column(db.String(10), index=True)
+    work_phone = db.Column(db.String(10), index=True)
+    home_phone = db.Column(db.String(10), index=True)
