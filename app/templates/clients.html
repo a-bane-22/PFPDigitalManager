@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Clients</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Middle Name</th>
+                    <th>DOB</th>
+                    <th>Email</th>
+                    <th>Cell Phone</th>
+                    <th>Work Phone</th>
+                    <th>Home Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for client in clients %}
+                <tr>
+                    <td>{{ client.first_name }}</td>
+                    <td>{{ client.last_name }}</td>
+                    <td>{{ client.middle_name }}</td>
+                    <td>{{ client.dob }}</td>
+                    <td>{{ client.email }}</td>
+                    <td>{{ client.cell_phone }}</td>
+                    <td>{{ client.work_phone }}</td>
+                    <td>{{ client.home_phone }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
