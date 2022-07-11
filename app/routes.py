@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ClientInformationForm
-from app.models import User, Client
+from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm
+from app.models import User, Client, ClientGroup
 
 
 @app.route('/')
@@ -107,3 +107,80 @@ def edit_client(client_id):
         db.session.commit()
         return redirect(url_for('client.html', client_id=client_id))
     return render_template('edit_client.html', title='Edit Client', form=form)
+
+
+@app.route('/client_groups')
+@login_required
+def client_groups():
+    groups = ClientGroup.query.all()
+    return render_template('client_groups.html', title='Client Groups', groups=groups)
+
+
+@app.route('/client_group/<group_id>')
+@login_required
+def client_group(group_id):
+    group = ClientGroup.query.get(int(group_id))
+    clients = group.clients
+    return render_template('client_group.html', title='Client Group', group=group, clients=clients)
+
+
+@app.route('/add_client_group/', methods=['GET', 'POST'])
+@login_required
+def add_client_group():
+    form = ClientGroupForm()
+    if form.validate_on_submit():
+        group = ClientGroup(name=form.name.data)
+        db.session.add(group)
+        db.session.commit()
+        return redirect(url_for('client_group', group_id=group.id))
+    return render_template('add_client_group.html', title='Add Client Group', form=form)
+
+
+@app.route('/edit_client_group/<group_id>', methods=['GET', 'POST'])
+@login_required
+def edit_client_group(group_id):
+    group = ClientGroup.query.get(int(group_id))
+    form = ClientGroupForm()
+    form.name.data = group.name
+    if form.validate_on_submit():
+        group.name = form.name.data
+        db.session.add(group)
+        db.session.commit()
+        return redirect(url_for('client_group', group_id=group.id))
+    return render_template('edit_client_group.html', title='Edit Client Group', form=form)
+
+
+@app.route('/assign_clients/<group_id>', methods=['GET', 'POST'])
+@login_required
+def assign_clients(group_id):
+    group = ClientGroup.query.get(int(group_id))
+    unassigned_clients = Client.query.filter_by(group_id=None).all()
+    choices = []
+    for client in unassigned_clients:
+        choices.append((client.id, client.get_name()))
+    form = AssignClientsForm(choices=choices)
+    if form.validate_on_submit():
+        assigned_client_ids = form.selections.data
+        for client_id in assigned_client_ids:
+            client = Client.query.get(client_id=client_id)
+            db.session.add(client)
+        db.session.commit()
+        return redirect(url_for('client_group', group_id=group_id))
+    return render_template('assign_clients.html', title='Assign Clients', group=group, form=form)
+
+
+@app.route('/assign_client/<client_id>', methods=['GET', 'POST'])
+@login_required
+def assign_client(client_id):
+    client = Client.query.get(int(client_id))
+    groups = ClientGroup.query.all()
+    choices = []
+    for group in groups:
+        choices.append((group.id, group.name))
+    form = AssignClientForm(choices=choices)
+    if form.validate_on_submit():
+        client.group_id = form.selection.data
+        db.session.add(client)
+        db.session.commit()
+        return redirect(url_for('client.html', client_id=client_id))
+    return render_template('assign_client.html', title='Assign Client', client=client, form=form)

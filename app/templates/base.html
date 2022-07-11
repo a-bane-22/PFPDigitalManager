@@ -24,6 +24,8 @@
                     <li><a href="{{ url_for('user_profile', username=current_user.username) }}">Profile</a></li>
                     <li><a href="{{ url_for('add_client') }}">Add Client</a></li>
                     <li><a href="{{ url_for('clients') }}">View Clients</a></li>
+                    <li><a href="{{ url_for('add_client_group') }}">Add Client Group</a></li>
+                    <li><a href="{{ url_for('client_groups') }}">View Client Groups</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>

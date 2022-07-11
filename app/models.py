@@ -36,3 +36,13 @@ class Client(db.Model):
     cell_phone = db.Column(db.String(10), index=True)
     work_phone = db.Column(db.String(10), index=True)
     home_phone = db.Column(db.String(10), index=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+
+    def get_name(self):
+        return self.first_name + ' ' + self.last_name
+
+
+class ClientGroup(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True)
+    clients = db.relationship('Client', backref='group', lazy='dynamic')

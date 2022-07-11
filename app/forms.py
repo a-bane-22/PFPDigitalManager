@@ -1,7 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from app.models import User
+
+
+class MultiCheckboxField(SelectMultipleField):
+    widgets = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 class LoginForm(FlaskForm):
@@ -38,5 +43,20 @@ class ClientInformationForm(FlaskForm):
     cell = StringField('Cell Phone')
     home = StringField('Home Phone')
     work = StringField('Work Phone')
-    submit = SubmitField('Add Client')
+    submit = SubmitField('Save Client')
+
+
+class ClientGroupForm(FlaskForm):
+    name = StringField('Group Name', validators=[DataRequired()])
+    submit = SubmitField('Save Group')
+
+
+class AssignClientsForm(FlaskForm):
+    selections = MultiCheckboxField('Select Clients to Assign')
+    submit = SubmitField('Assign Clients')
+
+
+class AssignClientForm(FlaskForm):
+    selection = RadioField('Select Group')
+    submit = SubmitField('Assign Client')
 
