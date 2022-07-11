@@ -37,6 +37,7 @@ class Client(db.Model):
     work_phone = db.Column(db.String(10), index=True)
     home_phone = db.Column(db.String(10), index=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+    accounts = db.relationship('Account', backref='client', lazy='dynamic')
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
@@ -46,3 +47,13 @@ class ClientGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
     clients = db.relationship('Client', backref='group', lazy='dynamic')
+
+
+class Account(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    account_number = db.Column(db.String(32), index=True)
+    description = db.Column(db.String(512))
+    billable = db.Column(db.Boolean, index=True)
+    discretionary = db.Column(db.Boolean, index=True)
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
+

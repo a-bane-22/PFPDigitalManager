@@ -60,3 +60,11 @@ class AssignClientForm(FlaskForm):
     selection = RadioField('Select Group')
     submit = SubmitField('Assign Client')
 
+
+class AccountForm(FlaskForm):
+    account_number = StringField('Account Number')
+    description = StringField('Description', validators=[DataRequired()])
+    billable = BooleanField('Billable')
+    discretionary = BooleanField('Discretionary')
+    submit = SubmitField('Save Account')
+

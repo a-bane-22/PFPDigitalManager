@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm
-from app.models import User, Client, ClientGroup
+from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm, AccountForm
+from app.models import User, Client, ClientGroup, Account
 
 
 @app.route('/')
@@ -51,18 +51,19 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/user_profile/<username>')
+@app.route('/user/<username>')
 @login_required
-def user_profile(username):
+def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', title='User Profile', user=user)
+    return render_template('user.html', title='User Dashboard', user=user)
 
 
-@app.route('/client_profile/<client_id>')
+@app.route('/client/<client_id>')
 @login_required
-def client_profile(client_id):
+def client(client_id):
     client = Client.query.get(int(client_id))
-    return render_template('client.html', title='Client Profile', client=client)
+    accounts = client.accounts
+    return render_template('client.html', title='Client Dashboard', client=client, accounts=accounts)
 
 
 @app.route('/add_client', methods=['GET', 'POST'])
@@ -105,7 +106,7 @@ def edit_client(client_id):
         client.home_phone = form.home_phone.data
         db.session.add(client)
         db.session.commit()
-        return redirect(url_for('client.html', client_id=client_id))
+        return redirect(url_for('client', client_id=client_id))
     return render_template('edit_client.html', title='Edit Client', form=form)
 
 
@@ -182,5 +183,55 @@ def assign_client(client_id):
         client.group_id = form.selection.data
         db.session.add(client)
         db.session.commit()
-        return redirect(url_for('client.html', client_id=client_id))
+        return redirect(url_for('client', client_id=client_id))
     return render_template('assign_client.html', title='Assign Client', client=client, form=form)
+
+
+@app.route('/accounts')
+@login_required
+def accounts():
+    accounts = Account.query.all()
+    return render_template('accounts.html', title='Accounts', accounts=accounts)
+
+
+@app.route('/account/<account_id>')
+@login_required
+def account(account_id):
+    account = Account.query.get(int(account_id))
+    return render_template('account.html', title='Account Dashboard', account=account)
+
+
+@app.route('/add_account/<client_id>', methods=['GET', 'POST'])
+@login_required
+def add_account(client_id):
+    client = Client.query.get(int(client_id))
+    form = AccountForm()
+    if form.validate_on_submit():
+        account = Account(account_number=form.account_number.data, description=form.description.data,
+                          discretionary=form.discretionary.data, billable=form.billable.data,
+                          client_id=int(client_id))
+        db.session.add(account)
+        db.session.commit()
+        return redirect(url_for('account', account_id=account.id))
+    return render_template('add_account.html', title='Add Account', form=form, client=client)
+
+
+@app.route('/edit_account/<account_id>', methods=['GET', 'POST'])
+@login_required
+def edit_account(account_id):
+    account = Account.query.get(int(account_id))
+    form = AccountForm()
+    form.account_number.data = account.account_number
+    form.description.data = account.description
+    form.billable.data = account.billable
+    form.discretionary.data = account.discretionary
+    if form.validate_on_submit():
+        account.account_number = form.account_number.data
+        account.description = form.description.data
+        account.billable = form.billable.data
+        account.discretionary = form.discretionary.data
+        db.session.add(account)
+        db.session.commit()
+        return redirect(url_for('account', account_id=account.id))
+    return render_template('edit_account.html', title='Edit Account', form=form)
+

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Account Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>{{ account.account_number }}</h2>
+            <h3>{{ account.description }}</h3>
+            <p><b>Billable: </b>{{ account.billable }}</p>
+            <p><b>Discretionary: </b>{{ account.discretionary }}</p>
+        </div>
+    </div>
+{% endblock %}

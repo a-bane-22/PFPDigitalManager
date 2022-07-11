@@ -22,6 +22,8 @@
                     <li><a href="{{ url_for('register') }}">Register</a></li>
                 {% else %}
                     <li><a href="{{ url_for('user_profile', username=current_user.username) }}">Profile</a></li>
+                    <li><a href="{{ url_for('add_account') }}">Add Account</a></li>
+                    <li><a href="{{ url_for('accounts') }}">View Accounts</a></li>
                     <li><a href="{{ url_for('add_client') }}">Add Client</a></li>
                     <li><a href="{{ url_for('clients') }}">View Clients</a></li>
                     <li><a href="{{ url_for('add_client_group') }}">Add Client Group</a></li>
