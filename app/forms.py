@@ -68,3 +68,11 @@ class AccountForm(FlaskForm):
     discretionary = BooleanField('Discretionary')
     submit = SubmitField('Save Account')
 
+
+class CustodianForm(FlaskForm):
+    custodian = SelectField('Custodian')
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description')
+    submit = SubmitField('Save Custodian')
+
+

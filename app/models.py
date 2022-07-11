@@ -56,4 +56,21 @@ class Account(db.Model):
     billable = db.Column(db.Boolean, index=True)
     discretionary = db.Column(db.Boolean, index=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
+    custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
+
+    def get_client_name(self):
+        client = Client.query.get(self.client_id)
+        return client.get_name()
+
+    def get_custodian_name(self):
+        custodian = Custodian.query.get(self.custodian_id)
+        return custodian.name
+
+
+class Custodian(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True)
+    description = db.Column(db.String(512))
+    accounts = db.relationship('Account', backref='custodian', lazy='dynamic')
+
 

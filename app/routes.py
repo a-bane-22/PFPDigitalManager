@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm, AccountForm
-from app.models import User, Client, ClientGroup, Account
+from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
+from app.models import User, Client, ClientGroup, Account, Custodian
 
 
 @app.route('/')
@@ -206,6 +206,11 @@ def account(account_id):
 def add_account(client_id):
     client = Client.query.get(int(client_id))
     form = AccountForm()
+    custodians = Custodian.query.all()
+    choices = []
+    for custodian in custodians:
+        choices.append((custodian.id, custodian.name))
+    form.custodian.choices = choices
     if form.validate_on_submit():
         account = Account(account_number=form.account_number.data, description=form.description.data,
                           discretionary=form.discretionary.data, billable=form.billable.data,
@@ -220,11 +225,16 @@ def add_account(client_id):
 @login_required
 def edit_account(account_id):
     account = Account.query.get(int(account_id))
+    custodians = Custodian.query.all()
     form = AccountForm()
     form.account_number.data = account.account_number
     form.description.data = account.description
     form.billable.data = account.billable
     form.discretionary.data = account.discretionary
+    choices = []
+    for custodian in custodians:
+        choices.append((custodian.id, custodian.name))
+    form.custodian.choices = choices
     if form.validate_on_submit():
         account.account_number = form.account_number.data
         account.description = form.description.data
@@ -234,4 +244,47 @@ def edit_account(account_id):
         db.session.commit()
         return redirect(url_for('account', account_id=account.id))
     return render_template('edit_account.html', title='Edit Account', form=form)
+
+
+@app.route('/custodians')
+@login_required
+def custodians():
+    custodians = Custodian.query.all()
+    return render_template('custodians.html', title='Custodians', custodians=custodians)
+
+
+@app.route('/custodian/<custodian_id>')
+@login_required
+def custodian(custodian_id):
+    custodian = Custodian.query.get(int(custodian_id))
+    return render_template('custodian.html', title='Custodian Dashboard', custodian=custodian)
+
+
+@app.route('/add_custodian', methods=['GET', 'POST'])
+@login_required
+def add_custodian():
+    form = CustodianForm()
+    if form.validate_on_submit():
+        custodian = Custodian(name=form.name.data, description=form.description.data)
+        db.session.add(custodian)
+        db.session.commit()
+        return redirect(url_for('custodian', custodian_id=custodian.id))
+    return render_template('add_custodian.html', title='Add Custodian', form=form)
+
+
+@app.route('/edit_custodian/<custodian_id>', methods=['GET', 'POST'])
+@login_required
+def edit_custodian(custodian_id):
+    custodian = Custodian.query.get(int(custodian_id))
+    form = CustodianForm()
+    form.name.data = custodian.name
+    form.description.data = custodian.description
+    if form.validate_on_submit():
+        custodian.name = form.name.data
+        custodian.description = form.description.data
+        db.session.add(custodian)
+        db.session.commit()
+        return redirect(url_for('custodian', custodian_id=custodian.id))
+    return render_template('edit_custodian.html', title='Edit Custodian', form=form)
+
 
