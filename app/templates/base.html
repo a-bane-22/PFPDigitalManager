@@ -21,6 +21,8 @@
                     <li><a href="{{ url_for('login') }}">Login</a></li>
                     <li><a href="{{ url_for('register') }}">Register</a></li>
                 {% else %}
+                    <li><a href="{{ url_for('users') }}">View Users</a></li>
+                    <li><a href="{{ url_for('add_user') }}">Add User</a></li>
                     <li><a href="{{ url_for('user', username=current_user.username) }}">Profile</a></li>
                     <li><a href="{{ url_for('accounts') }}">View Accounts</a></li>
                     <li><a href="{{ url_for('add_client') }}">Add Client</a></li>

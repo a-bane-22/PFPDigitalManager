@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
+from app.forms import LoginForm, RegistrationForm, UserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
 from app.models import User, Client, Group, Account, Custodian
 
 
@@ -42,7 +42,8 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(first_name=form.first_name.data, last_name=form.last_name.data,
+                    username=form.username.data, email=form.email.data, phone=form.phone.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -51,11 +52,53 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/user/<username>')
+@app.route('/users')
 @login_required
-def user(username):
-    user = User.query.filter_by(username=username).first_or_404()
+def users():
+    users = User.query.all()
+    return render_template('users.html', title='Users', users=users)
+
+
+@app.route('/user/<user_id>')
+@login_required
+def user(user_id):
+    user = User.query.get(int(user_id))
     return render_template('user.html', title='User Dashboard', user=user)
+
+
+@app.route('/add_user', methods=['GET', 'POST'])
+@login_required
+def add_user():
+    form = UserForm()
+    if form.validate_on_submit():
+        user = User(first_name=form.first_name.data, last_name=form.last_name.data,
+                    username=form.username.data, email=form.email.data, phone=form.phone.data)
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('user', user_id=user.id))
+    return render_template('add_user.html', title='Add User', form=form)
+
+
+@app.route('/edit_user/<user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_user(user_id):
+    user = User.query.get(int(user_id))
+    form = UserForm()
+    if form.validate_on_submit():
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.username = form.username.data
+        user.email = form.email.data
+        user.phone = form.phone.data
+        db.session.add(user)
+        db.session.commit()
+        return redirect(url_for('user', user_id=user.id))
+    form.first_name.data = user.first_name
+    form.last_name.data = user.last_name
+    form.username.data = user.username
+    form.email.data = user.email
+    form.phone.data = user.phone
+    return render_template('edit_user.html', title='Edit User', form=form)
 
 
 @app.route('/clients')
