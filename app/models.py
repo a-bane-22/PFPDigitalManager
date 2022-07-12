@@ -26,6 +26,12 @@ def load_user(id):
     return User.query.get(int(id))
 
 
+class Group(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True)
+    clients = db.relationship('Client', backref='group', lazy='dynamic')
+
+
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(32), index=True)
@@ -36,17 +42,19 @@ class Client(db.Model):
     cell_phone = db.Column(db.String(10), index=True)
     work_phone = db.Column(db.String(10), index=True)
     home_phone = db.Column(db.String(10), index=True)
+    assigned = db.Column(db.Boolean, index=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     accounts = db.relationship('Account', backref='client', lazy='dynamic')
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
 
+    def get_full_name(self):
+        return self.first_name + ' ' + self.middle_name + ' ' + self.last_name
 
-class ClientGroup(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), index=True)
-    clients = db.relationship('Client', backref='group', lazy='dynamic')
+    def get_group_name(self):
+        group = Group.query.get(self.group_id)
+        return group.name
 
 
 class Account(db.Model):

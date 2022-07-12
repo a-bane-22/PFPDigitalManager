@@ -12,7 +12,7 @@
             <tbody>
             {% for group in groups %}
                 <tr>
-                    <td><a href="{{ url_for('client_group', group_id=group.id) }}">{{ group.name }}</a></td>
+                    <td><a href="{{ url_for('group', group_id=group.id) }}">{{ group.name }}</a></td>
                 </tr>
             {% endfor %}
             </tbody>

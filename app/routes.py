@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ClientInformationForm, ClientGroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
-from app.models import User, Client, ClientGroup, Account, Custodian
+from app.forms import LoginForm, RegistrationForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
+from app.models import User, Client, Group, Account, Custodian
 
 
 @app.route('/')
@@ -58,6 +58,13 @@ def user(username):
     return render_template('user.html', title='User Dashboard', user=user)
 
 
+@app.route('/clients')
+@login_required
+def clients():
+    clients = Client.query.all()
+    return render_template('clients.html', title='Clients', clients=clients)
+
+
 @app.route('/client/<client_id>')
 @login_required
 def client(client_id):
@@ -74,7 +81,7 @@ def add_client():
         client = Client(first_name=form.first_name.data, last_name=form.last_name.data,
                         middle_name=form.middle_name.data, dob=form.dob.data, email=form.email.data,
                         cell_phone=form.cell_phone.data, work_phone=form.work_phone.data,
-                        home_phone=form.home_phone.data)
+                        home_phone=form.home_phone.data, assigned=False)
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('client', client_id=client.id))
@@ -86,15 +93,6 @@ def add_client():
 def edit_client(client_id):
     client = Client.query.get(int(client_id))
     form = ClientInformationForm()
-    form.first_name = client.first_name
-    form.last_name = client.last_name
-    if client.middle_name is not None:
-        form.middle_name = client.middle_name
-    form.dob.data = client.dob
-    form.email.data = client.email
-    form.cell_phone.data = client.cell_phone
-    form.work_phone.data = client.work_phone
-    form.home_phone.data = client.home_phone
     if form.validate_on_submit():
         client.first_name = form.first_name.data
         client.middle_name = form.middle_name.data
@@ -107,66 +105,79 @@ def edit_client(client_id):
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('client', client_id=client_id))
+    form.first_name.data = client.first_name
+    form.last_name.data = client.last_name
+    if client.middle_name is not None:
+        form.middle_name.data = client.middle_name
+    form.dob.data = client.dob
+    form.email.data = client.email
+    form.cell_phone.data = client.cell_phone
+    form.work_phone.data = client.work_phone
+    form.home_phone.data = client.home_phone
     return render_template('edit_client.html', title='Edit Client', form=form)
 
 
-@app.route('/client_groups')
+@app.route('/groups')
 @login_required
-def client_groups():
-    groups = ClientGroup.query.all()
-    return render_template('client_groups.html', title='Client Groups', groups=groups)
+def groups():
+    groups = Group.query.all()
+    return render_template('groups.html', title='Groups', groups=groups)
 
 
-@app.route('/client_group/<group_id>')
+@app.route('/group/<group_id>')
 @login_required
-def client_group(group_id):
-    group = ClientGroup.query.get(int(group_id))
+def group(group_id):
+    group = Group.query.get(int(group_id))
     clients = group.clients
-    return render_template('client_group.html', title='Client Group', group=group, clients=clients)
+    return render_template('group.html', title='Group Dashboard', group=group, clients=clients)
 
 
-@app.route('/add_client_group/', methods=['GET', 'POST'])
+@app.route('/add_group/', methods=['GET', 'POST'])
 @login_required
-def add_client_group():
-    form = ClientGroupForm()
+def add_group():
+    form = GroupForm()
     if form.validate_on_submit():
-        group = ClientGroup(name=form.name.data)
+        group = Group(name=form.name.data)
         db.session.add(group)
         db.session.commit()
-        return redirect(url_for('client_group', group_id=group.id))
-    return render_template('add_client_group.html', title='Add Client Group', form=form)
+        return redirect(url_for('group', group_id=group.id))
+    return render_template('add_group.html', title='Add Group', form=form)
 
 
-@app.route('/edit_client_group/<group_id>', methods=['GET', 'POST'])
+@app.route('/edit_group/<group_id>', methods=['GET', 'POST'])
 @login_required
-def edit_client_group(group_id):
-    group = ClientGroup.query.get(int(group_id))
-    form = ClientGroupForm()
-    form.name.data = group.name
+def edit_group(group_id):
+    group = Group.query.get(int(group_id))
+    form = GroupForm()
     if form.validate_on_submit():
         group.name = form.name.data
         db.session.add(group)
         db.session.commit()
-        return redirect(url_for('client_group', group_id=group.id))
-    return render_template('edit_client_group.html', title='Edit Client Group', form=form)
+        return redirect(url_for('group', group_id=group.id))
+    form.name.data = group.name
+    return render_template('edit_group.html', title='Edit Group', form=form)
 
 
 @app.route('/assign_clients/<group_id>', methods=['GET', 'POST'])
 @login_required
 def assign_clients(group_id):
-    group = ClientGroup.query.get(int(group_id))
+    group = Group.query.get(int(group_id))
+    form = AssignClientsForm()
+    if form.validate_on_submit():
+        assigned_client_ids = form.selections.data
+        for client_id in assigned_client_ids:
+            client = Client.query.get(client_id)
+            client.group_id = group.id
+            client.assigned = True
+            db.session.add(client)
+        db.session.commit()
+        return redirect(url_for('group', group_id=group_id))
     unassigned_clients = Client.query.filter_by(group_id=None).all()
     choices = []
     for client in unassigned_clients:
         choices.append((client.id, client.get_name()))
-    form = AssignClientsForm(choices=choices)
-    if form.validate_on_submit():
-        assigned_client_ids = form.selections.data
-        for client_id in assigned_client_ids:
-            client = Client.query.get(client_id=client_id)
-            db.session.add(client)
-        db.session.commit()
-        return redirect(url_for('client_group', group_id=group_id))
+    form.selections.choices = choices
+    form.selections.size = len(unassigned_clients)
     return render_template('assign_clients.html', title='Assign Clients', group=group, form=form)
 
 
@@ -174,13 +185,15 @@ def assign_clients(group_id):
 @login_required
 def assign_client(client_id):
     client = Client.query.get(int(client_id))
-    groups = ClientGroup.query.all()
+    groups = Group.query.all()
     choices = []
     for group in groups:
         choices.append((group.id, group.name))
-    form = AssignClientForm(choices=choices)
+    form = AssignClientForm()
+    form.selection.choices = choices
     if form.validate_on_submit():
         client.group_id = form.selection.data
+        client.assigned = True
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('client', client_id=client_id))
@@ -214,7 +227,7 @@ def add_account(client_id):
     if form.validate_on_submit():
         account = Account(account_number=form.account_number.data, description=form.description.data,
                           discretionary=form.discretionary.data, billable=form.billable.data,
-                          client_id=int(client_id))
+                          client_id=int(client_id), custodian_id=form.custodian.data)
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('account', account_id=account.id))
@@ -225,16 +238,7 @@ def add_account(client_id):
 @login_required
 def edit_account(account_id):
     account = Account.query.get(int(account_id))
-    custodians = Custodian.query.all()
     form = AccountForm()
-    form.account_number.data = account.account_number
-    form.description.data = account.description
-    form.billable.data = account.billable
-    form.discretionary.data = account.discretionary
-    choices = []
-    for custodian in custodians:
-        choices.append((custodian.id, custodian.name))
-    form.custodian.choices = choices
     if form.validate_on_submit():
         account.account_number = form.account_number.data
         account.description = form.description.data
@@ -243,6 +247,15 @@ def edit_account(account_id):
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('account', account_id=account.id))
+    form.account_number.data = account.account_number
+    form.description.data = account.description
+    form.billable.data = account.billable
+    form.discretionary.data = account.discretionary
+    custodians = Custodian.query.all()
+    choices = []
+    for custodian in custodians:
+        choices.append((custodian.id, custodian.name))
+    form.custodian.choices = choices
     return render_template('edit_account.html', title='Edit Account', form=form)
 
 
@@ -277,14 +290,14 @@ def add_custodian():
 def edit_custodian(custodian_id):
     custodian = Custodian.query.get(int(custodian_id))
     form = CustodianForm()
-    form.name.data = custodian.name
-    form.description.data = custodian.description
     if form.validate_on_submit():
         custodian.name = form.name.data
         custodian.description = form.description.data
         db.session.add(custodian)
         db.session.commit()
         return redirect(url_for('custodian', custodian_id=custodian.id))
+    form.name.data = custodian.name
+    form.description.data = custodian.description
     return render_template('edit_custodian.html', title='Edit Custodian', form=form)
 
 

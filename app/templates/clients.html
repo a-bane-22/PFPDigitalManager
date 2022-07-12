@@ -6,9 +6,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Middle Name</th>
+                    <th>Group Name</th>
+                    <th>Client Name</th>
                     <th>DOB</th>
                     <th>Email</th>
                     <th>Cell Phone</th>
@@ -19,9 +18,12 @@
             <tbody>
             {% for client in clients %}
                 <tr>
-                    <td>{{ client.first_name }}</td>
-                    <td>{{ client.last_name }}</td>
-                    <td>{{ client.middle_name }}</td>
+                {% if client.assigned %}
+                    <td><a href="{{ url_for('group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
+                {% else %}
+                    <td>Unassigned</td>
+                {% endif %}
+                    <td><a href="{{ url_for('client', client_id=client.id) }}">{{ client.get_full_name() }}</a></td>
                     <td>{{ client.dob }}</td>
                     <td>{{ client.email }}</td>
                     <td>{{ client.cell_phone }}</td>

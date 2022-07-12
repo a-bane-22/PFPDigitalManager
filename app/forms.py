@@ -5,7 +5,7 @@ from app.models import User
 
 
 class MultiCheckboxField(SelectMultipleField):
-    widgets = widgets.ListWidget(prefix_label=False)
+    widget = widgets.ListWidget(prefix_label=False)
     option_widget = widgets.CheckboxInput()
 
 
@@ -40,19 +40,19 @@ class ClientInformationForm(FlaskForm):
     middle_name = StringField('Middle Name')
     dob = DateField('DOB', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    cell = StringField('Cell Phone')
-    home = StringField('Home Phone')
-    work = StringField('Work Phone')
+    cell_phone = StringField('Cell Phone')
+    home_phone = StringField('Home Phone')
+    work_phone = StringField('Work Phone')
     submit = SubmitField('Save Client')
 
 
-class ClientGroupForm(FlaskForm):
+class GroupForm(FlaskForm):
     name = StringField('Group Name', validators=[DataRequired()])
     submit = SubmitField('Save Group')
 
 
 class AssignClientsForm(FlaskForm):
-    selections = MultiCheckboxField('Select Clients to Assign')
+    selections = MultiCheckboxField('Select Clients to Assign', coerce=int)
     submit = SubmitField('Assign Clients')
 
 
@@ -62,6 +62,7 @@ class AssignClientForm(FlaskForm):
 
 
 class AccountForm(FlaskForm):
+    custodian = SelectField('Custodian')
     account_number = StringField('Account Number')
     description = StringField('Description', validators=[DataRequired()])
     billable = BooleanField('Billable')
@@ -70,7 +71,6 @@ class AccountForm(FlaskForm):
 
 
 class CustodianForm(FlaskForm):
-    custodian = SelectField('Custodian')
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description')
     submit = SubmitField('Save Custodian')

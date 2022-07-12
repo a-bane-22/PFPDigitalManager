@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-4">
             <a href="{{ url_for('edit_client', client_id=client.id) }}" class="btn btn-primary" role="button">Edit Client</a>
-            <a href="{{ url_for('assign_client', client_id=client.id }}" class="btn btn-primary" role="button">Assign Client</a>
+            <a href="{{ url_for('assign_client', client_id=client.id) }}" class="btn btn-primary" role="button">Assign Client</a>
         </div>
     </div>
     <div class="row">
@@ -15,6 +15,14 @@
     </div>
     <div class="table-responsive">
         <table class="table">
+            <tr>
+                <td>Group Name</td>
+                {% if client.assigned %}
+                    <td><a href="{{ url_for('group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
+                {% else %}
+                    <td>Unassigned</td>
+                {% endif %}
+            </tr>
             <tr>
                 <td>First Name</td>
                 <td>{{ client.first_name }}</td>
@@ -62,7 +70,7 @@
             <tbody>
             {% for account in accounts %}
                 <tr>
-                    <td><a href="{{ url_for('account', account_id=account.id) }}">{{ account.account_id }}</a></td>
+                    <td><a href="{{ url_for('account', account_id=account.id) }}">{{ account.account_number }}</a></td>
                     <td>{{ account.description }}</td>
                     <td>{{ account.billable }}</td>
                     <td>{{ account.description }}</td>
