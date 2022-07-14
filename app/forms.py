@@ -23,6 +23,12 @@ class UserBase(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Phone', validators=[DataRequired()])
 
+
+class RegistrationForm(UserBase):
+    password = PasswordField('Password', validators=[DataRequired()])
+    password_2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Register')
+
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
@@ -32,12 +38,6 @@ class UserBase(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Please use a different email')
-
-
-class RegistrationForm(UserBase):
-    password = PasswordField('Password', validators=[DataRequired()])
-    password_2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Register')
 
 
 class UserForm(UserBase):
