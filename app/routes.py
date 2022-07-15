@@ -2,8 +2,8 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm
-from app.models import User, Client, Group, Account, AccountSnapshot, Custodian
+from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm
+from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position
 from datetime import date
 
 
@@ -407,3 +407,57 @@ def edit_custodian(custodian_id):
     return render_template('edit_custodian.html', title='Edit Custodian', form=form)
 
 
+@app.route('/securities')
+@login_required
+def securities():
+    securities = Security.query.all()
+    return render_template('securities.html', title='Securities', securities=securities)
+
+
+@app.route('/security/<security_id>')
+@login_required
+def security(security_id):
+    security = Security.query.get(int(security_id))
+    return render_template('security.html', title='Security', security=security)
+
+
+@app.route('/add_security', methods=['GET', 'POST'])
+@login_required
+def add_security():
+    form = AddSecurityForm()
+    if form.validate_on_submit():
+        security = Security(symbol=form.symbol.data, name=form.name.data, description=form.description.data)
+        db.session.add(security)
+        db.session.commit()
+        return redirect(url_for('security', security_id=security.id))
+    return render_template('add_security.html', title='Add Security', form=form)
+
+
+@app.route('/edit_security/<security_id>', methods=['GET', 'POST'])
+@login_required
+def edit_security(security_id):
+    security = Security.query.get(int(security_id))
+    form = EditSecurityForm()
+    if form.validate_on_submit():
+        security.name = form.name.data
+        security.description = form.description.data
+        db.session.add(security)
+        db.session.commit()
+        return redirect(url_for('security', security_id=security.id))
+    form.name.data = security.name
+    form.description.data = security.description
+    return render_template('edit_security.html', title='Edit Security', form=form, security=security)
+
+
+@app.route('/positions')
+@login_required
+def positions():
+    positions = Position.query.all()
+    return render_template('positions.html', title='Positions', positions=positions)
+
+
+@app.route('/position/<position_id>')
+@login_required
+def position(position_id):
+    position = Position.query.get(int(position_id))
+    return render_template('position.html', title='Position', position=position)

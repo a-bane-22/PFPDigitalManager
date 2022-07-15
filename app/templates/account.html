@@ -23,6 +23,28 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>Security</th>
+                    <th>Quantity</th>
+                    <th>Cost Basis</th>
+                    <th>View Position</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for position in positions %}
+                <tr>
+                    <td><a href="{{ url_for('security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
+                    <td>{{ position.quantity }}</td>
+                    <td>{{ position.cost_basis }}</td>
+                    <td><a href="{{ url_for('position', position_id=position.id) }}">View Position</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
                     <th>Date</th>
                     <th>Market Value</th>
                 </tr>

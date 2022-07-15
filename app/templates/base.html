@@ -58,6 +58,19 @@
                             <li><a href="{{ url_for('custodians') }}">View Custodians</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Security<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('add_security') }}">Add Security</a></li>
+                            <li><a href="{{ url_for('securities') }}">View Securities</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" date-toggle="dropdown" href="#">Position<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('positions') }}">View Positions</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>

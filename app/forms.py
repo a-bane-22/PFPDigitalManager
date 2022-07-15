@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField, SelectMultipleField, widgets, FloatField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
-from app.models import User
+from app.models import User, Security
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -103,3 +103,19 @@ class CustodianForm(FlaskForm):
     submit = SubmitField('Save Custodian')
 
 
+class AddSecurityForm(FlaskForm):
+    symbol = StringField('Symbol', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description')
+    submit = SubmitField('Save Security')
+
+    def validate_symbol(self, symbol):
+        security = Security.query.filter_by(symbol=symbol.data).first()
+        if security is not None:
+            raise ValidationError('A security already exists with that symbol.')
+
+
+class EditSecurityForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description')
+    submit = SubmitField('Save Security')

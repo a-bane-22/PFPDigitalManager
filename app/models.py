@@ -72,6 +72,7 @@ class Account(db.Model):
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
     snapshots = db.relationship('AccountSnapshot', backref='account', lazy='dynamic')
+    positions = db.relationship('Position', backref='account', lazy='dynamic')
 
     def get_client_name(self):
         client = Client.query.get(self.client_id)
@@ -100,4 +101,25 @@ class Custodian(db.Model):
     accounts = db.relationship('Account', backref='custodian', lazy='dynamic')
 
 
+class Security(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True, unique=True)
+    name = db.Column(db.String(64))
+    description = db.Column(db.String(512))
+    positions = db.relationship('Position', backref='security', lazy='dynamic')
 
+
+class Position(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Float)
+    cost_basis = db.Column(db.Float)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
+
+    def get_account_number(self):
+        account = Account.query.get(self.account_id)
+        return account.account_number
+
+    def get_security_symbol(self):
+        security = Security.query.get(self.security_id)
+        return security.symbol
