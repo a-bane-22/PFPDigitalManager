@@ -71,6 +71,7 @@ class Account(db.Model):
     discretionary = db.Column(db.Boolean, index=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
+    snapshots = db.relationship('AccountSnapshot', backref='account', lazy='dynamic')
 
     def get_client_name(self):
         client = Client.query.get(self.client_id)
@@ -81,10 +82,22 @@ class Account(db.Model):
         return custodian.name
 
 
+class AccountSnapshot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, index=True)
+    market_value = db.Column(db.Float)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+
+    def get_account_number(self):
+        account = Account.query.get(self.account_id)
+        return account.account_number
+
+
 class Custodian(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
     description = db.Column(db.String(512))
     accounts = db.relationship('Account', backref='custodian', lazy='dynamic')
+
 
 

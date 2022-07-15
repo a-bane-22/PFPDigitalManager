@@ -5,6 +5,7 @@
     <div class="row">
         <div class="col-md-4">
             <a href="{{ url_for('edit_account', account_id=account.id) }}" class="btn btn-primary" role="button">Edit Account</a>
+            <a href="{{ url_for('add_account_snapshot', account_id=account.id) }}" class="btn btn-primary" role="button">Add Account Snapshot</a>
         </div>
     </div>
     <div class="row">
@@ -17,5 +18,23 @@
             <p><b>Billable: </b>{{ account.billable }}</p>
             <p><b>Discretionary: </b>{{ account.discretionary }}</p>
         </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Market Value</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for snapshot in snapshots %}
+                <tr>
+                    <td><a href="{{ url_for('account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                    <td>{{ snapshot.market_value }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 {% endblock %}

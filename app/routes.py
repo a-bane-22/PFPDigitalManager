@@ -2,8 +2,9 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
-from app.models import User, Client, Group, Account, Custodian
+from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm
+from app.models import User, Client, Group, Account, AccountSnapshot, Custodian
+from datetime import date
 
 
 @app.route('/')
@@ -287,7 +288,8 @@ def accounts():
 @login_required
 def account(account_id):
     account = Account.query.get(int(account_id))
-    return render_template('account.html', title='Account Dashboard', account=account)
+    snapshots = account.snapshots
+    return render_template('account.html', title='Account Dashboard', account=account, snapshots=snapshots)
 
 
 @app.route('/add_account/<client_id>', methods=['GET', 'POST'])
@@ -333,6 +335,34 @@ def edit_account(account_id):
         choices.append((custodian.id, custodian.name))
     form.custodian.choices = choices
     return render_template('edit_account.html', title='Edit Account', form=form)
+
+
+@app.route('/account_snapshots')
+@login_required
+def account_snapshots():
+    snapshots = AccountSnapshot.query.all()
+    return render_template('account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
+
+
+@app.route('/account_snapshot/<snapshot_id>')
+@login_required
+def account_snapshot(snapshot_id):
+    snapshot = AccountSnapshot.query.get(int(snapshot_id))
+    account = Account.query.get(snapshot.account_id)
+    return render_template('account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
+
+
+@app.route('/create_account_snapshot/<account_id>', methods=['GET', 'POST'])
+@login_required
+def add_account_snapshot(account_id):
+    account = Account.query.get(int(account_id))
+    form = AccountSnapshotForm()
+    if form.validate_on_submit():
+        snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data, date=date.today())
+        db.session.add(snapshot)
+        db.session.commit()
+        return redirect(url_for('account_snapshot', snapshot_id=snapshot.id))
+    return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
 
 
 @app.route('/custodians')

@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField, SelectMultipleField, widgets
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField, SelectMultipleField, widgets, FloatField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from app.models import User
 
@@ -90,6 +90,11 @@ class AccountForm(FlaskForm):
     billable = BooleanField('Billable')
     discretionary = BooleanField('Discretionary')
     submit = SubmitField('Save Account')
+
+
+class AccountSnapshotForm(FlaskForm):
+    market_value = FloatField('Market Value', validators=[DataRequired()])
+    submit = SubmitField('Save Account Snapshot')
 
 
 class CustodianForm(FlaskForm):

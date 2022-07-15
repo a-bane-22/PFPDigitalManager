@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Account Snapshots</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>Market Value</th>
+                    <th>Date Recorded</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for snapshot in snapshots %}
+                <tr>
+                    <td><a href="{{ url_for('account', account_id=snapshot.account_id) }}">{{ snapshot.get_account_number() }}</a></td>
+                    <td>{{ snapshot.market_value }}</td>
+                    <td>{{ snapshot.date }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
