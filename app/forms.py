@@ -19,12 +19,12 @@ class LoginForm(FlaskForm):
 class UserBase(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
-    username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone = StringField('Phone', validators=[DataRequired()])
 
 
 class RegistrationForm(UserBase):
+    username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     password_2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
@@ -42,6 +42,18 @@ class RegistrationForm(UserBase):
 
 class UserForm(UserBase):
     submit = SubmitField('Save User')
+    
+
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField('Old Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password_2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Change Password')
+
+
+class DeleteUserForm(FlaskForm):
+    confirm = BooleanField('Confirm')
+    submit = SubmitField('Submit Selection')
 
 
 class ClientInformationForm(FlaskForm):

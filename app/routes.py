@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, UserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
+from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm
 from app.models import User, Client, Group, Account, Custodian
 
 
@@ -69,10 +69,11 @@ def user(user_id):
 @app.route('/add_user', methods=['GET', 'POST'])
 @login_required
 def add_user():
-    form = UserForm()
+    form = RegistrationForm()
     if form.validate_on_submit():
         user = User(first_name=form.first_name.data, last_name=form.last_name.data,
                     username=form.username.data, email=form.email.data, phone=form.phone.data)
+        user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('user', user_id=user.id))
@@ -87,7 +88,6 @@ def edit_user(user_id):
     if form.validate_on_submit():
         user.first_name = form.first_name.data
         user.last_name = form.last_name.data
-        user.username = form.username.data
         user.email = form.email.data
         user.phone = form.phone.data
         db.session.add(user)
@@ -95,10 +95,43 @@ def edit_user(user_id):
         return redirect(url_for('user', user_id=user.id))
     form.first_name.data = user.first_name
     form.last_name.data = user.last_name
-    form.username.data = user.username
     form.email.data = user.email
     form.phone.data = user.phone
     return render_template('edit_user.html', title='Edit User', form=form)
+
+
+@app.route('/change_password/<user_id>', methods=['GET', 'POST'])
+@login_required
+def change_password(user_id):
+    user = User.query.get(int(user_id))
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if user.check_password(form.old_password.data):
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('user', user_id=user.id))
+        else:
+            flash('The password provided was not correct')
+            return redirect(url_for('change_password', user_id=user.id))
+    return render_template('change_password.html', title='Change Password', form=form)
+
+
+@app.route('/delete_user/<user_id>', methods=['GET', 'POST'])
+@login_required
+def delete_user(user_id):
+    user = User.query.get(int(user_id))
+    form = DeleteUserForm()
+    if form.validate_on_submit():
+        if form.confirm.data:
+            if current_user.id == user.id:
+                logout_user()
+            db.session.delete(user)
+            db.session.commit()
+            return redirect(url_for('index'))
+        else:
+            return redirect(url_for('index'))
+    return render_template('delete_user.html', title='Delete User', form=form, user=user)
 
 
 @app.route('/clients')
