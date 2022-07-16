@@ -103,11 +103,10 @@ class CustodianForm(FlaskForm):
     submit = SubmitField('Save Custodian')
 
 
-class AddSecurityForm(FlaskForm):
+class NewSecurityForm(FlaskForm):
     symbol = StringField('Symbol', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description')
-    submit = SubmitField('Save Security')
 
     def validate_symbol(self, symbol):
         security = Security.query.filter_by(symbol=symbol.data).first()
@@ -115,7 +114,24 @@ class AddSecurityForm(FlaskForm):
             raise ValidationError('A security already exists with that symbol.')
 
 
+class AddSecurityForm(NewSecurityForm):
+    submit = SubmitField('Save Security')
+
+
 class EditSecurityForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description')
     submit = SubmitField('Save Security')
+
+
+class TransactionForm(FlaskForm):
+    date = DateField('Date')
+    type = SelectField('Type')
+    symbol = SelectField('Symbol')
+    new_symbol = BooleanField('New Symbol?')
+
+    quantity = FloatField('Quantity', validators=[DataRequired()])
+    share_price = FloatField('Share Price', validators=[DataRequired()])
+    gross_amount = FloatField('Gross Amount', validators=[DataRequired()])
+    description = StringField('Description')
+    submit = SubmitField('Save Transaction')

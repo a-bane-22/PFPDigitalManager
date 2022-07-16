@@ -73,6 +73,7 @@ class Account(db.Model):
     custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
     snapshots = db.relationship('AccountSnapshot', backref='account', lazy='dynamic')
     positions = db.relationship('Position', backref='account', lazy='dynamic')
+    transactions = db.relationship('Transaction', backref='account', lazy='dynamic')
 
     def get_client_name(self):
         client = Client.query.get(self.client_id)
@@ -107,6 +108,7 @@ class Security(db.Model):
     name = db.Column(db.String(64))
     description = db.Column(db.String(512))
     positions = db.relationship('Position', backref='security', lazy='dynamic')
+    transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
 
 
 class Position(db.Model):
@@ -115,6 +117,28 @@ class Position(db.Model):
     cost_basis = db.Column(db.Float)
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
+    transactions = db.relationship('Transaction', backref='position', lazy='dynamic')
+
+    def get_account_number(self):
+        account = Account.query.get(self.account_id)
+        return account.account_number
+
+    def get_security_symbol(self):
+        security = Security.query.get(self.security_id)
+        return security.symbol
+
+
+class Transaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, index=True)
+    type = db.Column(db.String(16), index=True)
+    description = db.Column(db.String(512))
+    quantity = db.Column(db.Float)
+    share_price = db.Column(db.Float)
+    gross_amount = db.Column(db.Float)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
+    position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
 
     def get_account_number(self):
         account = Account.query.get(self.account_id)
