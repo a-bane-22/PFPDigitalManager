@@ -1,5 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField, DateField, SelectMultipleField, widgets, FloatField
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+from wtforms import (StringField, PasswordField, BooleanField, SubmitField, SelectField, RadioField, FormField,
+                     DateField, SelectMultipleField, widgets, FloatField)
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from app.models import User, Security
 
@@ -129,9 +131,13 @@ class TransactionForm(FlaskForm):
     type = SelectField('Type')
     symbol = SelectField('Symbol')
     new_symbol = BooleanField('New Symbol?')
-
     quantity = FloatField('Quantity', validators=[DataRequired()])
     share_price = FloatField('Share Price', validators=[DataRequired()])
     gross_amount = FloatField('Gross Amount', validators=[DataRequired()])
     description = StringField('Description')
     submit = SubmitField('Save Transaction')
+
+
+class UploadTransactionForm(FlaskForm):
+    transaction_file = FileField('Transaction File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+    submit = SubmitField('Upload Transactions')

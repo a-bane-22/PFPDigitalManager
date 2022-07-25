@@ -1,10 +1,12 @@
 from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
-from app import app, db
-from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm
-from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position
+from werkzeug.utils import secure_filename
+from app import app, db, files
+from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm, UploadTransactionForm
+from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction
 from datetime import date
+import os
 
 
 @app.route('/')
@@ -461,3 +463,87 @@ def positions():
 def position(position_id):
     position = Position.query.get(int(position_id))
     return render_template('position.html', title='Position', position=position)
+
+
+@app.route('/transactions')
+@login_required
+def transactions():
+    transactions = Transaction.query.all()
+    return render_template('transactions.html', title='Transactions', transactions=transactions)
+
+
+@app.route('/transaction/<transaction_id>')
+@login_required
+def transaction(transaction_id):
+    transaction = Transaction.query.get(int(transaction_id))
+    return render_template('transaction.html', title='Transaction', transaction=transaction)
+
+
+@app.route('/add_transaction/<account_id>', methods=['GET', 'POST'])
+@login_required
+def add_transaction(account_id):
+    account = Account.query.get(int(account_id))
+    form = TransactionForm()
+    if form.validate_on_submit():
+        security = Security.query.get(int(form.symbol.data))
+        position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
+        if position is None:
+            position = Position(quantity=0, cost_basis=0, account_id=account.id, security_id=security.id)
+            db.session.add(position)
+            db.session.commit()
+        transaction = Transaction(date=form.date.data, type=form.type.data, quantity=form.quantity.data,
+                                  share_price=form.share_price.data, gross_amount=form.gross_amount.data,
+                                  description=form.description.data, account_id=account.id, security_id=security.id,
+                                  position_id=position.id)
+        position.update_position(transaction_type=transaction.type, quantity=transaction.quantity,
+                                 cost_basis=transaction.gross_amount)
+        db.session.add(transaction)
+        db.session.commit()
+        return redirect(url_for('account', account_id=account_id))
+    return render_template('add_transaction.html', title='Add Transaction', form=form, account=account)
+
+
+@app.route('/add_transaction_redirect')
+@login_required
+def add_transaction_redirect():
+    flash('Choose an account')
+    return redirect(url_for('accounts'))
+
+
+@app.route('/edit_transaction/<transaction_id>', methods=['GET', 'POST'])
+@login_required
+def edit_transaction(transaction_id):
+    transaction = Transaction.query.get(int(transaction_id))
+    form = TransactionForm()
+    if form.validate_on_submit():
+        transaction.date = form.date.data
+        transaction.type = form.type.data
+        transaction.quantity = form.quantity.data
+        transaction.share_price = form.share_price.data
+        transaction.gross_amount = form.gross_amount.data
+        transaction.description = form.description.data
+        position = Position.query.get(transaction.position_id)
+        position.update_position()
+        db.session.add(transaction)
+        db.session.commit()
+        return redirect(url_for('transaction', transaction_id=transaction.id))
+    form.date.data = transaction.date
+    form.type.data = transaction.type
+    form.quantity.data = transaction.quantity
+    form.share_price.data = transaction.share_price
+    form.gross_amount.data = transaction.gross_amount
+    form.description.data = transaction.description
+    return render_template('edit_transaction.html', title='Edit Transaction', form=form)
+
+
+@app.route('/upload_transactions', methods=['GET', 'POST'])
+@login_required
+def upload_transactions():
+    form = UploadTransactionForm()
+    if form.validate_on_submit():
+        f = form.transaction_file.data
+        transaction_file = secure_filename(f.filename)
+        f.save(os.path.join('uploads/files', transaction_file))
+        return redirect(url_for('transactions'))
+    return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
+

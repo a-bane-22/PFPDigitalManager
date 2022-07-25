@@ -8,3 +8,6 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    UPLOADS_DEFAULT_DEST = '/uploads'
+    UPLOADED_FILES_DEST = '/uploads/files'

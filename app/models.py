@@ -127,6 +127,30 @@ class Position(db.Model):
         security = Security.query.get(self.security_id)
         return security.symbol
 
+    def update_position(self, transaction_type, quantity, cost_basis):
+        if transaction_type == 'BUY':
+            self.quantity += quantity
+            self.cost_basis += cost_basis
+        elif transaction_type == 'SELL':
+            self.quantity -= quantity
+            if self.cost_basis < cost_basis:
+                self.cost_basis = 0
+            else:
+                self.cost_basis -= cost_basis
+
+    def update_position(self):
+        for transaction in self.transactions:
+            self.update_position(type=transaction.type, quantity=transaction.quantity,
+                                 cost_basis=transaction.gross_amount)
+
+    def reverse_transaction(self, transaction_type, quantity, cost_basis):
+        if transaction_type == 'BUY':
+            self.quantity -= quantity
+            self.cost_basis -= cost_basis
+        elif transaction_type == 'SELL':
+            self.quantity += quantity
+            self.cost_basis += cost_basis
+
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
