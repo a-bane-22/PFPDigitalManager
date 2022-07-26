@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 from app import app, db, files
 from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm, UploadTransactionForm
 from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction
-from datetime import date
+from datetime import date, datetime
 import os
 
 
@@ -290,8 +290,11 @@ def accounts():
 @login_required
 def account(account_id):
     account = Account.query.get(int(account_id))
+    positions = account.positions
+    transactions = account.transactions
     snapshots = account.snapshots
-    return render_template('account.html', title='Account Dashboard', account=account, snapshots=snapshots)
+    return render_template('account.html', title='Account Dashboard', account=account,
+                           positions=positions, transactions=transactions, snapshots=snapshots)
 
 
 @app.route('/add_account/<client_id>', methods=['GET', 'POST'])
@@ -360,7 +363,8 @@ def add_account_snapshot(account_id):
     account = Account.query.get(int(account_id))
     form = AccountSnapshotForm()
     if form.validate_on_submit():
-        snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data, date=date.today())
+        snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data,
+                                   date=date.today())
         db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('account_snapshot', snapshot_id=snapshot.id))
@@ -542,8 +546,42 @@ def upload_transactions():
     form = UploadTransactionForm()
     if form.validate_on_submit():
         f = form.transaction_file.data
-        transaction_file = secure_filename(f.filename)
-        f.save(os.path.join('uploads/files', transaction_file))
+        transaction_filename = os.path.join('uploads/files/' + secure_filename(f.filename))
+        f.save(transaction_filename)
+        transaction_file = open(transaction_filename, 'r')
+        transaction_file.readline()
+        lines = transaction_file.readlines()
+        transaction_file.close()
+        for line in lines:
+            data = line.split(',')
+            transaction_date = date.fromisoformat(data[0].strip())
+            account_number = data[1].strip()
+            transaction_type = data[2].strip()
+            symbol = data[3].strip()
+            name = data[4].strip()
+            quantity = float(data[5].strip())
+            share_price = float(data[6].strip())
+            gross_amount = float(data[7].strip())
+            description = data[8].strip()
+            account = Account.query.filter_by(account_number=account_number).first()
+            security = Security.query.filter_by(symbol=symbol).first()
+            if security is None:
+                security = Security(symbol=symbol, name=name)
+                db.session.add(security)
+                db.session.commit()
+            position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
+            if position is None:
+                position = Position(account_id=account.id, security_id=security.id, quantity=0, cost_basis=0)
+                db.session.add(position)
+                db.session.commit()
+            transaction = Transaction(date=transaction_date, type=transaction_type, quantity=quantity,
+                                      share_price=share_price, gross_amount=gross_amount, description=description,
+                                      account_id=account.id, security_id=security.id, position_id=position.id)
+            position.add_transaction(transaction_type=transaction_type, quantity=transaction.quantity,
+                                     gross_amount=transaction.gross_amount)
+            db.session.add(transaction)
+            db.session.add(position)
+        db.session.commit()
         return redirect(url_for('transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
 
