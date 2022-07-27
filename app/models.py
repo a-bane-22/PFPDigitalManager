@@ -128,10 +128,10 @@ class Position(db.Model):
         return security.symbol
 
     def add_transaction(self, transaction_type, quantity, gross_amount):
-        if transaction_type == 'BUY':
+        if transaction_type.upper() == 'BUY':
             self.quantity += quantity
             self.cost_basis += gross_amount
-        elif transaction_type == 'SELL':
+        elif transaction_type.upper() == 'SELL':
             self.quantity -= quantity
             if self.cost_basis < gross_amount:
                 self.cost_basis = 0

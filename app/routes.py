@@ -3,7 +3,10 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from app import app, db, files
-from app.forms import LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm, ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm, CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm, UploadTransactionForm
+from app.forms import (LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm,
+                       ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
+                       CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
+                       UploadTransactionForm)
 from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction
 from datetime import date, datetime
 import os
@@ -505,6 +508,7 @@ def add_transaction(account_id):
         position.update_position(transaction_type=transaction.type, quantity=transaction.quantity,
                                  cost_basis=transaction.gross_amount)
         db.session.add(transaction)
+        db.session.add(position)
         db.session.commit()
         return redirect(url_for('account', account_id=account_id))
     return render_template('add_transaction.html', title='Add Transaction', form=form, account=account)
@@ -532,6 +536,7 @@ def edit_transaction(transaction_id):
         position = Position.query.get(transaction.position_id)
         position.update_position()
         db.session.add(transaction)
+        db.session.add(position)
         db.session.commit()
         return redirect(url_for('transaction', transaction_id=transaction.id))
     form.date.data = transaction.date
@@ -587,4 +592,3 @@ def upload_transactions():
         db.session.commit()
         return redirect(url_for('transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
-
