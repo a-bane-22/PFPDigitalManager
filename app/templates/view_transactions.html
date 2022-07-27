@@ -19,10 +19,10 @@
             <tbody>
             {% for transaction in transactions %}
                 <tr>
-                    <td><a href="{{ url_for('transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
-                    <td><a href="{{ url_for('account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></td>
+                    <td><a href="{{ url_for('view_transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
+                    <td><a href="{{ url_for('view_account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></td>
                     <td>{{ transaction.type }}</td>
-                    <td><a href="{{ url_for('security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
+                    <td><a href="{{ url_for('view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
                     <td>{{ transaction.quantity }}</td>
                     <td>{{ transaction.share_price }}</td>
                     <td>{{ transaction.gross_amount }}</td>

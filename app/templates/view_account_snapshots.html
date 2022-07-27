@@ -14,7 +14,7 @@
             <tbody>
             {% for snapshot in snapshots %}
                 <tr>
-                    <td><a href="{{ url_for('account', account_id=snapshot.account_id) }}">{{ snapshot.get_account_number() }}</a></td>
+                    <td><a href="{{ url_for('view_account', account_id=snapshot.account_id) }}">{{ snapshot.get_account_number() }}</a></td>
                     <td>{{ snapshot.market_value }}</td>
                     <td>{{ snapshot.date }}</td>
                 </tr>

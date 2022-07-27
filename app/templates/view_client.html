@@ -18,7 +18,7 @@
             <tr>
                 <td>Group Name</td>
                 {% if client.assigned %}
-                    <td><a href="{{ url_for('group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
+                    <td><a href="{{ url_for('view_group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
                 {% else %}
                     <td>Unassigned</td>
                 {% endif %}
@@ -70,7 +70,7 @@
             <tbody>
             {% for account in accounts %}
                 <tr>
-                    <td><a href="{{ url_for('account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                    <td><a href="{{ url_for('view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
                     <td>{{ account.description }}</td>
                     <td>{{ account.billable }}</td>
                     <td>{{ account.description }}</td>

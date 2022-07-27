@@ -2,9 +2,9 @@
 
 {% block app_content %}
     <h1>Account Snapshot</h1>
-    <h2><a href="{{ url_for('account', account_id=account.id) }}">{{ account.description }}</a></h2>
+    <h2><a href="{{ url_for('view_account', account_id=account.id) }}">{{ account.description }}</a></h2>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
             <p><b>Date: </b>{{ snapshot.date }}</p>
             <p><b>Market Value: </b>{{ snapshot.market_value }}</p>
         </div>

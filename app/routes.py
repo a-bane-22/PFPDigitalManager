@@ -39,34 +39,39 @@ def logout():
     return redirect(url_for('index'))
 
 
+def create_user(first_name, last_name, username, password, email, phone):
+    user = User(first_name=first_name, last_name=last_name, username=username, email=email, phone=phone)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    return user.id
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(first_name=form.first_name.data, last_name=form.last_name.data,
-                    username=form.username.data, email=form.email.data, phone=form.phone.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
+        create_user(first_name=form.first_name.data, last_name=form.last_name.data,
+                    username=form.username.data, password=form.password.data,
+                    email=form.email.data, phone=form.phone.data)
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/users')
+@app.route('/view_users')
 @login_required
-def users():
+def view_users():
     users = User.query.all()
-    return render_template('users.html', title='Users', users=users)
+    return render_template('view_users.html', title='Users', users=users)
 
 
-@app.route('/user/<user_id>')
+@app.route('/view_user/<user_id>')
 @login_required
-def user(user_id):
+def view_user(user_id):
     user = User.query.get(int(user_id))
-    return render_template('user.html', title='User Dashboard', user=user)
+    return render_template('view_user.html', title='User Dashboard', user=user)
 
 
 @app.route('/add_user', methods=['GET', 'POST'])
@@ -74,12 +79,10 @@ def user(user_id):
 def add_user():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(first_name=form.first_name.data, last_name=form.last_name.data,
-                    username=form.username.data, email=form.email.data, phone=form.phone.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('user', user_id=user.id))
+        user_id = create_user(first_name=form.first_name.data, last_name=form.last_name.data,
+                              username=form.username.data, password=form.password.data,
+                              email=form.email.data, phone=form.phone.data)
+        return redirect(url_for('user', user_id=user_id))
     return render_template('add_user.html', title='Add User', form=form)
 
 
@@ -137,19 +140,19 @@ def delete_user(user_id):
     return render_template('delete_user.html', title='Delete User', form=form, user=user)
 
 
-@app.route('/clients')
+@app.route('/view_clients')
 @login_required
-def clients():
+def view_clients():
     clients = Client.query.all()
-    return render_template('clients.html', title='Clients', clients=clients)
+    return render_template('view_clients.html', title='Clients', clients=clients)
 
 
-@app.route('/client/<client_id>')
+@app.route('/view_client/<client_id>')
 @login_required
-def client(client_id):
+def view_client(client_id):
     client = Client.query.get(int(client_id))
     accounts = client.accounts
-    return render_template('client.html', title='Client Dashboard', client=client, accounts=accounts)
+    return render_template('view_client.html', title='Client Dashboard', client=client, accounts=accounts)
 
 
 @app.route('/add_client', methods=['GET', 'POST'])
@@ -196,19 +199,19 @@ def edit_client(client_id):
     return render_template('edit_client.html', title='Edit Client', form=form)
 
 
-@app.route('/groups')
+@app.route('/view_groups')
 @login_required
-def groups():
+def view_groups():
     groups = Group.query.all()
-    return render_template('groups.html', title='Groups', groups=groups)
+    return render_template('view_groups.html', title='Groups', groups=groups)
 
 
-@app.route('/group/<group_id>')
+@app.route('/view_group/<group_id>')
 @login_required
-def group(group_id):
+def view_group(group_id):
     group = Group.query.get(int(group_id))
     clients = group.clients
-    return render_template('group.html', title='Group Dashboard', group=group, clients=clients)
+    return render_template('view_group.html', title='Group Dashboard', group=group, clients=clients)
 
 
 @app.route('/add_group/', methods=['GET', 'POST'])
@@ -279,21 +282,21 @@ def assign_client(client_id):
     return render_template('assign_client.html', title='Assign Client', client=client, form=form)
 
 
-@app.route('/accounts')
+@app.route('/view_accounts')
 @login_required
-def accounts():
+def view_accounts():
     accounts = Account.query.all()
-    return render_template('accounts.html', title='Accounts', accounts=accounts)
+    return render_template('view_accounts.html', title='Accounts', accounts=accounts)
 
 
-@app.route('/account/<account_id>')
+@app.route('/view_account/<account_id>')
 @login_required
-def account(account_id):
+def view_account(account_id):
     account = Account.query.get(int(account_id))
     positions = account.positions
     transactions = account.transactions
     snapshots = account.snapshots
-    return render_template('account.html', title='Account Dashboard', account=account,
+    return render_template('view_account.html', title='Account Dashboard', account=account,
                            positions=positions, transactions=transactions, snapshots=snapshots)
 
 
@@ -342,19 +345,19 @@ def edit_account(account_id):
     return render_template('edit_account.html', title='Edit Account', form=form)
 
 
-@app.route('/account_snapshots')
+@app.route('/view_account_snapshots')
 @login_required
-def account_snapshots():
+def view_account_snapshots():
     snapshots = AccountSnapshot.query.all()
-    return render_template('account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
+    return render_template('view_account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
 
 
-@app.route('/account_snapshot/<snapshot_id>')
+@app.route('/view_account_snapshot/<snapshot_id>')
 @login_required
-def account_snapshot(snapshot_id):
+def view_account_snapshot(snapshot_id):
     snapshot = AccountSnapshot.query.get(int(snapshot_id))
     account = Account.query.get(snapshot.account_id)
-    return render_template('account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
+    return render_template('view_account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
 
 
 @app.route('/create_account_snapshot/<account_id>', methods=['GET', 'POST'])
@@ -371,18 +374,18 @@ def add_account_snapshot(account_id):
     return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
 
 
-@app.route('/custodians')
+@app.route('/view_custodians')
 @login_required
-def custodians():
+def view_custodians():
     custodians = Custodian.query.all()
-    return render_template('custodians.html', title='Custodians', custodians=custodians)
+    return render_template('view_custodians.html', title='Custodians', custodians=custodians)
 
 
-@app.route('/custodian/<custodian_id>')
+@app.route('/view_custodian/<custodian_id>')
 @login_required
-def custodian(custodian_id):
+def view_custodian(custodian_id):
     custodian = Custodian.query.get(int(custodian_id))
-    return render_template('custodian.html', title='Custodian Dashboard', custodian=custodian)
+    return render_template('view_custodian.html', title='Custodian Dashboard', custodian=custodian)
 
 
 @app.route('/add_custodian', methods=['GET', 'POST'])
@@ -413,18 +416,18 @@ def edit_custodian(custodian_id):
     return render_template('edit_custodian.html', title='Edit Custodian', form=form)
 
 
-@app.route('/securities')
+@app.route('/view_securities')
 @login_required
-def securities():
+def view_securities():
     securities = Security.query.all()
-    return render_template('securities.html', title='Securities', securities=securities)
+    return render_template('view_securities.html', title='Securities', securities=securities)
 
 
-@app.route('/security/<security_id>')
+@app.route('/view_security/<security_id>')
 @login_required
-def security(security_id):
+def view_security(security_id):
     security = Security.query.get(int(security_id))
-    return render_template('security.html', title='Security', security=security)
+    return render_template('view_security.html', title='Security', security=security)
 
 
 @app.route('/add_security', methods=['GET', 'POST'])
@@ -455,32 +458,32 @@ def edit_security(security_id):
     return render_template('edit_security.html', title='Edit Security', form=form, security=security)
 
 
-@app.route('/positions')
+@app.route('/view_positions')
 @login_required
-def positions():
+def view_positions():
     positions = Position.query.all()
-    return render_template('positions.html', title='Positions', positions=positions)
+    return render_template('view_positions.html', title='Positions', positions=positions)
 
 
-@app.route('/position/<position_id>')
+@app.route('/view_position/<position_id>')
 @login_required
-def position(position_id):
+def view_position(position_id):
     position = Position.query.get(int(position_id))
-    return render_template('position.html', title='Position', position=position)
+    return render_template('view_position.html', title='Position', position=position)
 
 
-@app.route('/transactions')
+@app.route('/view_transactions')
 @login_required
-def transactions():
+def view_transactions():
     transactions = Transaction.query.all()
-    return render_template('transactions.html', title='Transactions', transactions=transactions)
+    return render_template('view_transactions.html', title='Transactions', transactions=transactions)
 
 
-@app.route('/transaction/<transaction_id>')
+@app.route('/view_transaction/<transaction_id>')
 @login_required
-def transaction(transaction_id):
+def view_transaction(transaction_id):
     transaction = Transaction.query.get(int(transaction_id))
-    return render_template('transaction.html', title='Transaction', transaction=transaction)
+    return render_template('view_transaction.html', title='Transaction', transaction=transaction)
 
 
 @app.route('/add_transaction/<account_id>', methods=['GET', 'POST'])

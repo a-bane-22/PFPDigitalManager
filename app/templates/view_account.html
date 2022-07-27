@@ -13,8 +13,8 @@
         <div class="col-md-12">
             <h2>Account Information</h2>
             <p><b>Account Number: </b>{{ account.account_number }}</p>
-            <p><b>Client: </b><a href="{{ url_for('client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></p>
-            <p><b>Custodian: </b><a href="{{ url_for('custodian', custodian_id=account.custodian_id) }}">{{ account.get_custodian_name() }}</a></p>
+            <p><b>Client: </b><a href="{{ url_for('view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></p>
+            <p><b>Custodian: </b><a href="{{ url_for('view_custodian', custodian_id=account.custodian_id) }}">{{ account.get_custodian_name() }}</a></p>
             <p><b>Description: </b>{{ account.description }}</p>
             <p><b>Billable: </b>{{ account.billable }}</p>
             <p><b>Discretionary: </b>{{ account.discretionary }}</p>
@@ -36,10 +36,10 @@
                     <tbody>
                     {% for position in positions %}
                         <tr>
-                            <td><a href="{{ url_for('security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
+                            <td><a href="{{ url_for('view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
                             <td>{{ position.quantity }}</td>
                             <td>{{ position.cost_basis }}</td>
-                            <td><a href="{{ url_for('position', position_id=position.id) }}">View Position</a></td>
+                            <td><a href="{{ url_for('view_position', position_id=position.id) }}">View Position</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -66,9 +66,9 @@
                     <tbody>
                     {% for transaction in transactions %}
                         <tr>
-                            <td><a href="{{ url_for('transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
+                            <td><a href="{{ url_for('view_transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
                             <td>{{ transaction.type }}</td>
-                            <td><a href="{{ url_for('security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
+                            <td><a href="{{ url_for('view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
                             <td>{{ transaction.quantity }}</td>
                             <td>{{ transaction.share_price }}</td>
                             <td>{{ transaction.gross_amount }}</td>
@@ -94,7 +94,7 @@
                     <tbody>
                     {% for snapshot in snapshots %}
                         <tr>
-                            <td><a href="{{ url_for('account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                            <td><a href="{{ url_for('view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
                             <td>{{ snapshot.market_value }}</td>
                         </tr>
                     {% endfor %}

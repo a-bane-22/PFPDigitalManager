@@ -13,7 +13,7 @@
             <tbody>
             {% for custodian in custodians %}
                 <tr>
-                    <td><a href="{{ url_for('custodian', custodian_id=custodian.id) }}">{{ custodian.name }}</a></td>
+                    <td><a href="{{ url_for('view_custodian', custodian_id=custodian.id) }}">{{ custodian.name }}</a></td>
                     <td>{{ custodian.description }}</td>
                 </tr>
             {% endfor %}
