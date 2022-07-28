@@ -179,3 +179,11 @@ class Transaction(db.Model):
     def get_security_symbol(self):
         security = Security.query.get(self.security_id)
         return security.symbol
+
+
+class Quarter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    from_date = db.Column(db.Date, index=True)
+    to_date = db.Column(db.Date, index=True)
+    name = db.Column(db.String(7), unique=True, index=True)
+    aum = db.Column(db.Float)

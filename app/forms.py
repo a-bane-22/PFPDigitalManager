@@ -140,3 +140,11 @@ class TransactionForm(FlaskForm):
 class UploadTransactionForm(FlaskForm):
     transaction_file = FileField('Transaction File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
     submit = SubmitField('Upload Transactions')
+
+
+class QuarterForm(FlaskForm):
+    from_date = DateField('From', validators=[DataRequired()])
+    to_date = DateField('To', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    aum = FloatField('AUM', validators=[DataRequired()])
+    submit = SubmitField('Save Quarter')

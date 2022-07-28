@@ -6,8 +6,9 @@ from app import app, db
 from app.forms import (LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm,
                        ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                        CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
-                       UploadTransactionForm)
-from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction
+                       UploadTransactionForm, QuarterForm)
+from app.models import (User, Client, Group, Account, AccountSnapshot, Custodian,
+                        Security, Position, Transaction, Quarter)
 from datetime import date
 import os
 
@@ -615,3 +616,59 @@ def delete_transaction(transaction_id):
     db.session.add(position)
     db.session.commit()
     return redirect(url_for('view_transactions'))
+
+
+@app.route('/view_quarters')
+@login_required
+def view_quarters():
+    quarters = Quarter.query.all()
+    return render_template('view_quarters.html', title='View Quarters', quarters=quarters)
+
+
+@app.route('/view_quarter/<quarter_id>')
+@login_required
+def view_quarter(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    return render_template('view_quarter.html', title='View Quarter', quarter=quarter)
+
+
+@app.route('/add_quarter', methods=['GET', 'POST'])
+@login_required
+def add_quarter():
+    form = QuarterForm()
+    if form.validate_on_submit():
+        quarter = Quarter(from_date=form.from_date.data, to_date=form.to_date.data,
+                          name=form.name.data, aum=form.aum.data)
+        db.session.add(quarter)
+        db.session.commit()
+        return redirect(url_for('view_quarter', quarter_id=quarter.id))
+    return render_template('add_quarter.html', title='Add Quarter', form=form)
+
+
+@app.route('/edit_quarter/<quarter_id>', methods=['GET', 'POST'])
+@login_required
+def edit_quarter(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    form = QuarterForm()
+    if form.validate_on_submit():
+        quarter.from_date = form.from_date.data
+        quarter.to_date = form.to_date.data
+        quarter.name = form.name.data
+        quarter.aum = form.aum.data
+        db.session.add(quarter)
+        db.session.commit()
+        return redirect(url_for('view_quarter', quarter_id=quarter_id))
+    form.from_date.data = quarter.from_date
+    form.to_date.data = quarter.to_date
+    form.name.data = quarter.name
+    form.aum.data = quarter.aum
+    return render_template('edit_quarter.html', title='Edit Quarter', form=form)
+
+
+@app.route('/delete_quarter/<quarter_id>')
+@login_required
+def delete_quarter(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    db.session.delete(quarter)
+    db.session.commit()
+    return redirect(url_for('view_quarters'))

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Quarter Dashboard</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ url_for('edit_quarter', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Edit Quarter</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Quarter Details</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <tr>
+                        <td>From</td>
+                        <td>{{ quarter.from_date }}</td>
+                    </tr>
+                    <tr>
+                        <td>To</td>
+                        <td>{{ quarter.to_date }}</td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ quarter.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>AUM</td>
+                        <td>{{ quarter.aum }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -79,6 +79,13 @@
                             <li><a href="{{ url_for('view_transactions') }}">View Transactions</a></li>
                         </ul>
                     </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Quarter<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('add_quarter') }}">Add Quarter</a></li>
+                            <li><a href="{{ url_for('view_quarters') }}">View Quarters</a></li>
+                        </ul>
+                    </li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
