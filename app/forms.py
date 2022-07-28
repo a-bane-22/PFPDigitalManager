@@ -129,8 +129,7 @@ class EditSecurityForm(FlaskForm):
 class TransactionForm(FlaskForm):
     date = DateField('Date')
     type = SelectField('Type')
-    symbol = SelectField('Symbol')
-    new_symbol = BooleanField('New Symbol?')
+    security = SelectField('Security')
     quantity = FloatField('Quantity', validators=[DataRequired()])
     share_price = FloatField('Share Price', validators=[DataRequired()])
     gross_amount = FloatField('Gross Amount', validators=[DataRequired()])

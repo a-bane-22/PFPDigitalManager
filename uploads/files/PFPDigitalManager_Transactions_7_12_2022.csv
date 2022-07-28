@@ -1,0 +1,4 @@
+Date,Account Number,Type,Symbol,Name,Quantity,Share Price,Gross Amount,Description
+ 2022-07-11 ,1111111,BUY,AAPL,Apple Inc,10,450.89,4508.9,TDA Discretionary
+ 2022-07-11 ,1111111,BUY,GOOG,Google Inc,10,260.63,2606.3,TDA Discretionary
+ 2022-07-12 ,1111111,BUY,GOOG,Google Inc,10,255.63,2556.3,TDA Discretionary

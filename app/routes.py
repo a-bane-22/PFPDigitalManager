@@ -2,13 +2,13 @@ from flask import render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
-from app import app, db, files
+from app import app, db
 from app.forms import (LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm,
                        ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                        CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
                        UploadTransactionForm)
 from app.models import User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction
-from datetime import date, datetime
+from datetime import date
 import os
 
 
@@ -85,7 +85,7 @@ def add_user():
         user_id = create_user(first_name=form.first_name.data, last_name=form.last_name.data,
                               username=form.username.data, password=form.password.data,
                               email=form.email.data, phone=form.phone.data)
-        return redirect(url_for('user', user_id=user_id))
+        return redirect(url_for('view_user', user_id=user_id))
     return render_template('add_user.html', title='Add User', form=form)
 
 
@@ -101,7 +101,7 @@ def edit_user(user_id):
         user.phone = form.phone.data
         db.session.add(user)
         db.session.commit()
-        return redirect(url_for('user', user_id=user.id))
+        return redirect(url_for('view_user', user_id=user.id))
     form.first_name.data = user.first_name
     form.last_name.data = user.last_name
     form.email.data = user.email
@@ -119,7 +119,7 @@ def change_password(user_id):
             user.set_password(form.password.data)
             db.session.add(user)
             db.session.commit()
-            return redirect(url_for('user', user_id=user.id))
+            return redirect(url_for('view_user', user_id=user.id))
         else:
             flash('The password provided was not correct')
             return redirect(url_for('change_password', user_id=user.id))
@@ -169,7 +169,7 @@ def add_client():
                         home_phone=form.home_phone.data, assigned=False)
         db.session.add(client)
         db.session.commit()
-        return redirect(url_for('client', client_id=client.id))
+        return redirect(url_for('view_client', client_id=client.id))
     return render_template('add_client.html', title='Add Client', form=form)
 
 
@@ -189,7 +189,7 @@ def edit_client(client_id):
         client.home_phone = form.home_phone.data
         db.session.add(client)
         db.session.commit()
-        return redirect(url_for('client', client_id=client_id))
+        return redirect(url_for('view_client', client_id=client_id))
     form.first_name.data = client.first_name
     form.last_name.data = client.last_name
     if client.middle_name is not None:
@@ -225,7 +225,7 @@ def add_group():
         group = Group(name=form.name.data)
         db.session.add(group)
         db.session.commit()
-        return redirect(url_for('group', group_id=group.id))
+        return redirect(url_for('view_group', group_id=group.id))
     return render_template('add_group.html', title='Add Group', form=form)
 
 
@@ -238,7 +238,7 @@ def edit_group(group_id):
         group.name = form.name.data
         db.session.add(group)
         db.session.commit()
-        return redirect(url_for('group', group_id=group.id))
+        return redirect(url_for('view_group', group_id=group.id))
     form.name.data = group.name
     return render_template('edit_group.html', title='Edit Group', form=form)
 
@@ -256,7 +256,7 @@ def assign_clients(group_id):
             client.assigned = True
             db.session.add(client)
         db.session.commit()
-        return redirect(url_for('group', group_id=group_id))
+        return redirect(url_for('view_group', group_id=group_id))
     unassigned_clients = Client.query.filter_by(group_id=None).all()
     choices = []
     for client in unassigned_clients:
@@ -281,7 +281,7 @@ def assign_client(client_id):
         client.assigned = True
         db.session.add(client)
         db.session.commit()
-        return redirect(url_for('client', client_id=client_id))
+        return redirect(url_for('view_client', client_id=client_id))
     return render_template('assign_client.html', title='Assign Client', client=client, form=form)
 
 
@@ -319,7 +319,7 @@ def add_account(client_id):
                           client_id=int(client_id), custodian_id=form.custodian.data)
         db.session.add(account)
         db.session.commit()
-        return redirect(url_for('account', account_id=account.id))
+        return redirect(url_for('view_account', account_id=account.id))
     return render_template('add_account.html', title='Add Account', form=form, client=client)
 
 
@@ -335,7 +335,7 @@ def edit_account(account_id):
         account.discretionary = form.discretionary.data
         db.session.add(account)
         db.session.commit()
-        return redirect(url_for('account', account_id=account.id))
+        return redirect(url_for('view_account', account_id=account.id))
     form.account_number.data = account.account_number
     form.description.data = account.description
     form.billable.data = account.billable
@@ -373,7 +373,7 @@ def add_account_snapshot(account_id):
                                    date=date.today())
         db.session.add(snapshot)
         db.session.commit()
-        return redirect(url_for('account_snapshot', snapshot_id=snapshot.id))
+        return redirect(url_for('view_account_snapshot', snapshot_id=snapshot.id))
     return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
 
 
@@ -399,7 +399,7 @@ def add_custodian():
         custodian = Custodian(name=form.name.data, description=form.description.data)
         db.session.add(custodian)
         db.session.commit()
-        return redirect(url_for('custodian', custodian_id=custodian.id))
+        return redirect(url_for('view_custodian', custodian_id=custodian.id))
     return render_template('add_custodian.html', title='Add Custodian', form=form)
 
 
@@ -413,7 +413,7 @@ def edit_custodian(custodian_id):
         custodian.description = form.description.data
         db.session.add(custodian)
         db.session.commit()
-        return redirect(url_for('custodian', custodian_id=custodian.id))
+        return redirect(url_for('view_custodian', custodian_id=custodian.id))
     form.name.data = custodian.name
     form.description.data = custodian.description
     return render_template('edit_custodian.html', title='Edit Custodian', form=form)
@@ -430,7 +430,10 @@ def view_securities():
 @login_required
 def view_security(security_id):
     security = Security.query.get(int(security_id))
-    return render_template('view_security.html', title='Security', security=security)
+    positions = security.positions
+    transactions = security.transactions
+    return render_template('view_security.html', title='Security', security=security, positions=positions,
+                           transactions=transactions)
 
 
 @app.route('/add_security', methods=['GET', 'POST'])
@@ -441,7 +444,7 @@ def add_security():
         security = Security(symbol=form.symbol.data, name=form.name.data, description=form.description.data)
         db.session.add(security)
         db.session.commit()
-        return redirect(url_for('security', security_id=security.id))
+        return redirect(url_for('view_security', security_id=security.id))
     return render_template('add_security.html', title='Add Security', form=form)
 
 
@@ -455,7 +458,7 @@ def edit_security(security_id):
         security.description = form.description.data
         db.session.add(security)
         db.session.commit()
-        return redirect(url_for('security', security_id=security.id))
+        return redirect(url_for('view_security', security_id=security.id))
     form.name.data = security.name
     form.description.data = security.description
     return render_template('edit_security.html', title='Edit Security', form=form, security=security)
@@ -472,7 +475,8 @@ def view_positions():
 @login_required
 def view_position(position_id):
     position = Position.query.get(int(position_id))
-    return render_template('view_position.html', title='Position', position=position)
+    transactions = position.transactions
+    return render_template('view_position.html', title='Position', position=position, transactions=transactions)
 
 
 @app.route('/view_transactions')
@@ -494,8 +498,15 @@ def view_transaction(transaction_id):
 def add_transaction(account_id):
     account = Account.query.get(int(account_id))
     form = TransactionForm()
+    securities = Security.query.all()
+    security_choices = []
+    for security in securities:
+        security_choices.append((security.id, security.symbol))
+    form.security.choices = security_choices
+    type_choices = [('BUY', 'Buy'), ('SELL', 'Sell')]
+    form.type.choices = type_choices
     if form.validate_on_submit():
-        security = Security.query.get(int(form.symbol.data))
+        security = Security.query.get(int(form.security.data))
         position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
         if position is None:
             position = Position(quantity=0, cost_basis=0, account_id=account.id, security_id=security.id)
@@ -505,12 +516,12 @@ def add_transaction(account_id):
                                   share_price=form.share_price.data, gross_amount=form.gross_amount.data,
                                   description=form.description.data, account_id=account.id, security_id=security.id,
                                   position_id=position.id)
-        position.update_position(transaction_type=transaction.type, quantity=transaction.quantity,
-                                 cost_basis=transaction.gross_amount)
+        position.add_transaction(transaction_type=transaction.type, quantity=transaction.quantity,
+                                 gross_amount=transaction.gross_amount)
         db.session.add(transaction)
         db.session.add(position)
         db.session.commit()
-        return redirect(url_for('account', account_id=account_id))
+        return redirect(url_for('view_account', account_id=account_id))
     return render_template('add_transaction.html', title='Add Transaction', form=form, account=account)
 
 
@@ -518,7 +529,7 @@ def add_transaction(account_id):
 @login_required
 def add_transaction_redirect():
     flash('Choose an account')
-    return redirect(url_for('accounts'))
+    return redirect(url_for('view_accounts'))
 
 
 @app.route('/edit_transaction/<transaction_id>', methods=['GET', 'POST'])
@@ -534,11 +545,11 @@ def edit_transaction(transaction_id):
         transaction.gross_amount = form.gross_amount.data
         transaction.description = form.description.data
         position = Position.query.get(transaction.position_id)
-        position.update_position()
+        position.recreate_position()
         db.session.add(transaction)
         db.session.add(position)
         db.session.commit()
-        return redirect(url_for('transaction', transaction_id=transaction.id))
+        return redirect(url_for('view_transaction', transaction_id=transaction.id))
     form.date.data = transaction.date
     form.type.data = transaction.type
     form.quantity.data = transaction.quantity
@@ -590,5 +601,17 @@ def upload_transactions():
             db.session.add(transaction)
             db.session.add(position)
         db.session.commit()
-        return redirect(url_for('transactions'))
+        return redirect(url_for('view_transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
+
+
+@app.route('/delete_transaction/<transaction_id>')
+@login_required
+def delete_transaction(transaction_id):
+    transaction = Transaction.query.get(int(transaction_id))
+    position = Position.query.get(int(transaction.position_id))
+    position.remove_transaction(transaction_id=transaction.id)
+    db.session.delete(transaction)
+    db.session.add(position)
+    db.session.commit()
+    return redirect(url_for('view_transactions'))

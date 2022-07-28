@@ -1,5 +1,3 @@
-from datetime import datetime
-from pickle import NONE
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db, login
 from flask_login import UserMixin
@@ -138,7 +136,17 @@ class Position(db.Model):
             else:
                 self.cost_basis -= gross_amount
 
-    def update_position(self):
+    def remove_transaction(self, transaction_id):
+        self.quantity = 0
+        self.cost_basis = 0
+        for transaction in self.transactions:
+            if transaction.id != transaction_id:
+                self.add_transaction(transaction_type=transaction.type, quantity=transaction.quantity,
+                                     gross_amount=transaction.gross_amount)
+
+    def recreate_position(self):
+        self.quantity = 0
+        self.cost_basis = 0
         for transaction in self.transactions:
             self.add_transaction(transaction_type=transaction.type, quantity=transaction.quantity,
                                  gross_amount=transaction.gross_amount)

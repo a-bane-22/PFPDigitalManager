@@ -16,7 +16,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
             <h2>Positions</h2>
             <div class="table-responsive">
                 <table class="table">
@@ -43,7 +43,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
             <h2>Transactions</h2>
             <div class="table-responsive">
                 <table class="table">
@@ -61,8 +61,8 @@
                     <tbody>
                     {% for transaction in transactions %}
                         <tr>
-                            <td><a href="{{ url_for('transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
-                            <td><a href="{{ url_for('account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></td>
+                            <td><a href="{{ url_for('view_transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
+                            <td><a href="{{ url_for('view_account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></td>
                             <td>{{ transaction.type }}</td>
                             <td>{{ transaction.quantity }}</td>
                             <td>{{ transaction.share_price }}</td>
