@@ -95,6 +95,7 @@ class AccountForm(FlaskForm):
 
 
 class AccountSnapshotForm(FlaskForm):
+    quarter = SelectField('Quarter', validators=[DataRequired()])
     market_value = FloatField('Market Value', validators=[DataRequired()])
     submit = SubmitField('Save Account Snapshot')
 
@@ -146,5 +147,4 @@ class QuarterForm(FlaskForm):
     from_date = DateField('From', validators=[DataRequired()])
     to_date = DateField('To', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
-    aum = FloatField('AUM', validators=[DataRequired()])
     submit = SubmitField('Save Quarter')

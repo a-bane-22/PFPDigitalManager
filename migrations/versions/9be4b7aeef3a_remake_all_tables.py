@@ -1,8 +1,8 @@
-"""Add User, ClientGroup, Client, Account, and Custodian
+"""Remake all tables
 
-Revision ID: 0bfed65b6b47
+Revision ID: 9be4b7aeef3a
 Revises: 
-Create Date: 2022-07-11 17:59:04.244225
+Create Date: 2022-08-01 12:37:50.675623
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0bfed65b6b47'
+revision = '9be4b7aeef3a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,14 +31,39 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_group_name'), 'group', ['name'], unique=False)
+    op.create_table('quarter',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('from_date', sa.Date(), nullable=True),
+    sa.Column('to_date', sa.Date(), nullable=True),
+    sa.Column('name', sa.String(length=7), nullable=True),
+    sa.Column('aum', sa.Float(), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_quarter_from_date'), 'quarter', ['from_date'], unique=False)
+    op.create_index(op.f('ix_quarter_name'), 'quarter', ['name'], unique=True)
+    op.create_index(op.f('ix_quarter_to_date'), 'quarter', ['to_date'], unique=False)
+    op.create_table('security',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('symbol', sa.String(length=16), nullable=True),
+    sa.Column('name', sa.String(length=64), nullable=True),
+    sa.Column('description', sa.String(length=512), nullable=True),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_security_symbol'), 'security', ['symbol'], unique=True)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('first_name', sa.String(length=32), nullable=True),
+    sa.Column('last_name', sa.String(length=32), nullable=True),
     sa.Column('username', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=True),
+    sa.Column('phone', sa.String(length=10), nullable=True),
     sa.Column('password_hash', sa.String(length=128), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
+    op.create_index(op.f('ix_user_first_name'), 'user', ['first_name'], unique=False)
+    op.create_index(op.f('ix_user_last_name'), 'user', ['last_name'], unique=False)
+    op.create_index(op.f('ix_user_phone'), 'user', ['phone'], unique=False)
     op.create_index(op.f('ix_user_username'), 'user', ['username'], unique=True)
     op.create_table('client',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -50,10 +75,12 @@ def upgrade():
     sa.Column('cell_phone', sa.String(length=10), nullable=True),
     sa.Column('work_phone', sa.String(length=10), nullable=True),
     sa.Column('home_phone', sa.String(length=10), nullable=True),
+    sa.Column('assigned', sa.Boolean(), nullable=True),
     sa.Column('group_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_client_assigned'), 'client', ['assigned'], unique=False)
     op.create_index(op.f('ix_client_cell_phone'), 'client', ['cell_phone'], unique=False)
     op.create_index(op.f('ix_client_dob'), 'client', ['dob'], unique=False)
     op.create_index(op.f('ix_client_email'), 'client', ['email'], unique=True)
@@ -77,11 +104,58 @@ def upgrade():
     op.create_index(op.f('ix_account_account_number'), 'account', ['account_number'], unique=False)
     op.create_index(op.f('ix_account_billable'), 'account', ['billable'], unique=False)
     op.create_index(op.f('ix_account_discretionary'), 'account', ['discretionary'], unique=False)
+    op.create_table('account_snapshot',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('date', sa.Date(), nullable=True),
+    sa.Column('market_value', sa.Float(), nullable=True),
+    sa.Column('account_id', sa.Integer(), nullable=True),
+    sa.Column('quarter_id', sa.Integer(), nullable=True),
+    sa.Column('group_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['account_id'], ['account.id'], ),
+    sa.ForeignKeyConstraint(['group_id'], ['group.id'], ),
+    sa.ForeignKeyConstraint(['quarter_id'], ['quarter.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_account_snapshot_date'), 'account_snapshot', ['date'], unique=False)
+    op.create_table('position',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Float(), nullable=True),
+    sa.Column('cost_basis', sa.Float(), nullable=True),
+    sa.Column('account_id', sa.Integer(), nullable=True),
+    sa.Column('security_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['account_id'], ['account.id'], ),
+    sa.ForeignKeyConstraint(['security_id'], ['security.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('transaction',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('date', sa.Date(), nullable=True),
+    sa.Column('type', sa.String(length=16), nullable=True),
+    sa.Column('description', sa.String(length=512), nullable=True),
+    sa.Column('quantity', sa.Float(), nullable=True),
+    sa.Column('share_price', sa.Float(), nullable=True),
+    sa.Column('gross_amount', sa.Float(), nullable=True),
+    sa.Column('account_id', sa.Integer(), nullable=True),
+    sa.Column('security_id', sa.Integer(), nullable=True),
+    sa.Column('position_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['account_id'], ['account.id'], ),
+    sa.ForeignKeyConstraint(['position_id'], ['position.id'], ),
+    sa.ForeignKeyConstraint(['security_id'], ['security.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_transaction_date'), 'transaction', ['date'], unique=False)
+    op.create_index(op.f('ix_transaction_type'), 'transaction', ['type'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f('ix_transaction_type'), table_name='transaction')
+    op.drop_index(op.f('ix_transaction_date'), table_name='transaction')
+    op.drop_table('transaction')
+    op.drop_table('position')
+    op.drop_index(op.f('ix_account_snapshot_date'), table_name='account_snapshot')
+    op.drop_table('account_snapshot')
     op.drop_index(op.f('ix_account_discretionary'), table_name='account')
     op.drop_index(op.f('ix_account_billable'), table_name='account')
     op.drop_index(op.f('ix_account_account_number'), table_name='account')
@@ -94,10 +168,20 @@ def downgrade():
     op.drop_index(op.f('ix_client_email'), table_name='client')
     op.drop_index(op.f('ix_client_dob'), table_name='client')
     op.drop_index(op.f('ix_client_cell_phone'), table_name='client')
+    op.drop_index(op.f('ix_client_assigned'), table_name='client')
     op.drop_table('client')
     op.drop_index(op.f('ix_user_username'), table_name='user')
+    op.drop_index(op.f('ix_user_phone'), table_name='user')
+    op.drop_index(op.f('ix_user_last_name'), table_name='user')
+    op.drop_index(op.f('ix_user_first_name'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
+    op.drop_index(op.f('ix_security_symbol'), table_name='security')
+    op.drop_table('security')
+    op.drop_index(op.f('ix_quarter_to_date'), table_name='quarter')
+    op.drop_index(op.f('ix_quarter_name'), table_name='quarter')
+    op.drop_index(op.f('ix_quarter_from_date'), table_name='quarter')
+    op.drop_table('quarter')
     op.drop_index(op.f('ix_group_name'), table_name='group')
     op.drop_table('group')
     op.drop_index(op.f('ix_custodian_name'), table_name='custodian')

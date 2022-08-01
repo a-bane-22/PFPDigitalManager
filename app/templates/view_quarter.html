@@ -32,4 +32,39 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Account Snapshots</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Client</th>
+                            <th>Group</th>
+                            <th>Market Value</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for account_snapshot in account_snapshots %}
+                        {% with account=account_snapshot.get_account() %}
+                        <tr>
+                            <td><a href="{{ url_for('view_account', account_id=account.account_id) }}">{{ account.account_number }}</a></td>
+                            <td><a href="{{ url_for('view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
+                            {% if account_snapshot.assigned_group() %}
+                                <td><a href="{{ url_for('view_group', group_id=account_snapshot.group_id) }}">{{ account_snapshot.get_group_name() }}</a></td>
+                            {% else %}
+                                <td>Unassigned</td>
+                            {% endif %}
+                            <td>{{ account_snapshot.market_value }}</td>
+                            <td>{{ account_snapshot.date }}</td>
+                        </tr>
+                        {% endwith %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}

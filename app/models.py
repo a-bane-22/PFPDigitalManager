@@ -34,6 +34,7 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
     clients = db.relationship('Client', backref='group', lazy='dynamic')
+    account_snapshots = db.relationship('AccountSnapshot', backref='group', lazy='dynamic')
 
 
 class Client(db.Model):
@@ -80,17 +81,6 @@ class Account(db.Model):
     def get_custodian_name(self):
         custodian = Custodian.query.get(self.custodian_id)
         return custodian.name
-
-
-class AccountSnapshot(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, index=True)
-    market_value = db.Column(db.Float)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
-
-    def get_account_number(self):
-        account = Account.query.get(self.account_id)
-        return account.account_number
 
 
 class Custodian(db.Model):
@@ -187,3 +177,35 @@ class Quarter(db.Model):
     to_date = db.Column(db.Date, index=True)
     name = db.Column(db.String(7), unique=True, index=True)
     aum = db.Column(db.Float)
+    account_snapshots = db.relationship('AccountSnapshot', backref='quarter', lazy='dynamic')
+
+
+class AccountSnapshot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, index=True)
+    market_value = db.Column(db.Float)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+
+    def get_account_number(self):
+        account = Account.query.get(self.account_id)
+        return account.account_number
+
+    def get_account(self):
+        account = Account.query.get(self.account_id)
+        return account
+
+    def assigned_group(self):
+        assigned = True
+        if self.group_id is None:
+            assigned = False
+        return assigned
+
+    def get_group_name(self):
+        group = Group.query.get(self.group_id)
+        return group.name
+
+    def get_quarter_name(self):
+        quarter = Quarter.query.get(self.quarter_id)
+        return quarter.name

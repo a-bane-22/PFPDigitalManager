@@ -255,6 +255,10 @@ def assign_clients(group_id):
             client = Client.query.get(client_id)
             client.group_id = group.id
             client.assigned = True
+            for account in client.accounts:
+                for account_snapshot in account.snapshots:
+                    account_snapshot.group_id = client.group_id
+                    db.session.add(account_snapshot)
             db.session.add(client)
         db.session.commit()
         return redirect(url_for('view_group', group_id=group_id))
@@ -280,6 +284,10 @@ def assign_client(client_id):
     if form.validate_on_submit():
         client.group_id = form.selection.data
         client.assigned = True
+        for account in client.accounts:
+            for account_snapshot in account.snapshots:
+                account_snapshot.group_id = client.group_id
+                db.session.add(account_snapshot)
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('view_client', client_id=client_id))
@@ -369,9 +377,19 @@ def view_account_snapshot(snapshot_id):
 def add_account_snapshot(account_id):
     account = Account.query.get(int(account_id))
     form = AccountSnapshotForm()
+    quarters = Quarter.query.all()
+    choices = []
+    for quarter in quarters:
+        choices.append((quarter.id, quarter.name))
+    form.quarter.choices = choices
     if form.validate_on_submit():
+        client = Client.query.get(int(account.client_id))
+        quarter = Quarter.query.get(int(form.quarter.data))
         snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data,
-                                   date=date.today())
+                                   date=date.today(), quarter_id=quarter.id,
+                                   group_id=client.group_id)
+        quarter.aum += snapshot.market_value
+        db.session.add(quarter)
         db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('view_account_snapshot', snapshot_id=snapshot.id))
@@ -629,7 +647,9 @@ def view_quarters():
 @login_required
 def view_quarter(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
-    return render_template('view_quarter.html', title='View Quarter', quarter=quarter)
+    account_snapshots = AccountSnapshot.query.all()
+    return render_template('view_quarter.html', title='View Quarter', quarter=quarter,
+                           account_snapshots=account_snapshots)
 
 
 @app.route('/add_quarter', methods=['GET', 'POST'])
@@ -638,7 +658,7 @@ def add_quarter():
     form = QuarterForm()
     if form.validate_on_submit():
         quarter = Quarter(from_date=form.from_date.data, to_date=form.to_date.data,
-                          name=form.name.data, aum=form.aum.data)
+                          name=form.name.data, aum=0)
         db.session.add(quarter)
         db.session.commit()
         return redirect(url_for('view_quarter', quarter_id=quarter.id))
