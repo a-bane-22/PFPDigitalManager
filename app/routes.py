@@ -630,3 +630,45 @@ def view_quarters():
 def view_quarter(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
     return render_template('view_quarter.html', title='View Quarter', quarter=quarter)
+
+
+@app.route('/add_quarter', methods=['GET', 'POST'])
+@login_required
+def add_quarter():
+    form = QuarterForm()
+    if form.validate_on_submit():
+        quarter = Quarter(from_date=form.from_date.data, to_date=form.to_date.data, name=form.name.data,
+                          aum=0)
+        db.session.add(quarter)
+        db.session.commit()
+        return redirect(url_for('view_quarter', quarter_id=quarter.id))
+    return render_template('add_quarter.html', title='Add Quarter', form=form)
+
+
+@app.route('/edit_quarter/<quarter_id>', methods=['GET', 'POST'])
+@login_required
+def edit_quarter(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    form = QuarterForm()
+    if form.validate_on_submit():
+        quarter.from_date = form.from_date.data
+        quarter.to_date = form.to_date.data
+        quarter.name = form.name.data
+        db.session.add(quarter)
+        db.session.commit()
+        return redirect(url_for('view_quarter', quarter_id=quarter.id))
+    form.from_date.data = quarter.from_date
+    form.to_date.data = quarter.to_date
+    form.name.data = quarter.name
+    return render_template('edit_quarter.html', title='Edit Quarter', form=form)
+
+
+@app.route('/delete_quarter/<quarter_id>')
+@login_required
+def delete_quarter(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    for snapshot in quarter.account_snapshots:
+        db.session.delete(snapshot)
+    db.session.delete(quarter)
+    db.session.commit()
+    return redirect(url_for('view_quarters'))

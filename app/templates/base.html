@@ -13,9 +13,6 @@
             <a class="navbar-brand" href="{{ url_for('index') }}">PFP Digital Manager</a>
         </div>
         <div class="collapsed navbar-collapse" id="navbar-collapse-1">
-            <ul class="nav navbar-nav">
-                <li><a href="{{ url_for('index') }}">PFP Digital Manager</a></li>
-            </ul>
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_anonymous %}
                     <li><a href="{{ url_for('login') }}">Login</a></li>
