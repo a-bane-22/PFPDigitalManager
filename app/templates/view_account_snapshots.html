@@ -12,6 +12,7 @@
                     <th>Market Value</th>
                     <th>Quarter</th>
                     <th>Date (View Snapshot)</th>
+                    <th>Delete Snapshot</th>
                 </tr>
             </thead>
             <tbody>
@@ -28,6 +29,7 @@
                     <td>{{ snapshot.market_value }}</td>
                     <td><a href="{{ url_for('view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
                     <td><a href="{{ url_for('view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                    <td><a href="{{ url_for('delete_account_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>
                 {% endwith %}
             {% endfor %}

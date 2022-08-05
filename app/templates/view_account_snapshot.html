@@ -20,7 +20,11 @@
                     </tr>
                     <tr>
                         <td>Group</td>
+                        {% if snapshot.assigned_group() %}
                         <td><a href="{{ url_for('view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
+                        {% else %}
+                        <td>Unassigned</td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td>Market Value</td>

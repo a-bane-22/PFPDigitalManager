@@ -256,6 +256,10 @@ def assign_clients(group_id):
             client.group_id = group.id
             client.assigned = True
             db.session.add(client)
+            for account in client.accounts:
+                for snapshot in account.snapshots:
+                    snapshot.group_id = group.id
+                    db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('view_group', group_id=group_id))
     unassigned_clients = Client.query.filter_by(group_id=None).all()
@@ -281,6 +285,10 @@ def assign_client(client_id):
         client.group_id = form.selection.data
         client.assigned = True
         db.session.add(client)
+        for account in client.accounts:
+            for snapshot in account.snapshots:
+                snapshot.group_id = client.group_id
+                db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('view_client', client_id=client_id))
     return render_template('assign_client.html', title='Assign Client', client=client, form=form)
@@ -369,13 +377,47 @@ def view_account_snapshot(snapshot_id):
 def add_account_snapshot(account_id):
     account = Account.query.get(int(account_id))
     form = AccountSnapshotForm()
+    quarters = Quarter.query.all()
+    choices = []
+    for quarter in quarters:
+        choices.append((quarter.id, quarter.name))
+    form.quarter.choices = choices
     if form.validate_on_submit():
+        quarter = Quarter.query.get(form.quarter.data)
+        client = Client.query.get(account.client_id)
         snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data,
-                                   date=date.today())
+                                   date=date.today(), quarter_id=quarter.id, group_id=client.group_id)
+        quarter.aum += snapshot.market_value
         db.session.add(snapshot)
+        db.session.add(quarter)
         db.session.commit()
         return redirect(url_for('view_account_snapshot', snapshot_id=snapshot.id))
     return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
+
+
+@app.route('/delete_account_snapshot/<snapshot_id>')
+@login_required
+def delete_account_snapshot(snapshot_id):
+    snapshot = AccountSnapshot.query.get(int(snapshot_id))
+    quarter = Quarter.query.get(snapshot.quarter_id)
+    quarter.aum -= snapshot.market_value
+    db.session.delete(snapshot)
+    db.session.add(quarter)
+    db.session.commit()
+    return redirect(url_for('view_account_snapshots'))
+
+
+@app.route('/delete_all_account_snapshots')
+@login_required
+def delete_all_account_snapshots():
+    num_deleted = AccountSnapshot.query.delete()
+    quarters = Quarter.query.all()
+    for quarter in quarters:
+        quarter.aum = 0
+        db.session.add(quarter)
+    db.session.commit()
+    flash('Deleted ' + str(num_deleted) + ' Account Snapshots')
+    return redirect(url_for('index'))
 
 
 @app.route('/view_custodians')

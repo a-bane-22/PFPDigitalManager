@@ -90,6 +90,7 @@
                             <th>Date</th>
                             <th>Market Value</th>
                             <th>Quarter</th>
+                            <th>Group</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,6 +99,11 @@
                             <td><a href="{{ url_for('view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
                             <td>{{ snapshot.market_value }}</td>
                             <td><a href="{{ url_for('view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
+                            {% if snapshot.assigned_group() %}
+                            <td><a href="{{ url_for('view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
+                            {% else %}
+                            <td>Unassigned</td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                     </tbody>
