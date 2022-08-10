@@ -147,4 +147,12 @@ class QuarterForm(FlaskForm):
     from_date = DateField('From', validators=[DataRequired()])
     to_date = DateField('To', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
+
+
+class AddQuarterForm(QuarterForm):
+    account_file = FileField('Account File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+    submit = SubmitField('Save Quarter')
+
+
+class EditQuarterForm(QuarterForm):
     submit = SubmitField('Save Quarter')

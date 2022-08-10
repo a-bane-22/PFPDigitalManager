@@ -6,7 +6,7 @@ from app import app, db
 from app.forms import (LoginForm, RegistrationForm, UserForm, ChangePasswordForm, DeleteUserForm,
                        ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                        CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
-                       UploadTransactionForm, QuarterForm)
+                       UploadTransactionForm, AddQuarterForm, EditQuarterForm)
 from app.models import (User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction,
                         Quarter)
 from datetime import date
@@ -677,21 +677,70 @@ def view_quarter(quarter_id):
 @app.route('/add_quarter', methods=['GET', 'POST'])
 @login_required
 def add_quarter():
-    form = QuarterForm()
+    form = AddQuarterForm()
     if form.validate_on_submit():
         quarter = Quarter(from_date=form.from_date.data, to_date=form.to_date.data, name=form.name.data,
                           aum=0)
         db.session.add(quarter)
         db.session.commit()
+        f = form.account_file.data
+        account_filename = os.path.join('uploads/files/' + secure_filename(f.filename))
+        f.save(account_filename)
+        create_account_snapshots_from_file(quarter_id=quarter.id, filename=account_filename)
         return redirect(url_for('view_quarter', quarter_id=quarter.id))
     return render_template('add_quarter.html', title='Add Quarter', form=form)
+
+
+# MOVE TO ROUTE HELPER FILE
+def create_account_snapshots_from_file(quarter_id, filename):
+    quarter = Quarter.query.get(quarter_id)
+    account_file = open(filename, 'r')
+    account_file.readline()
+    lines = account_file.readlines()
+    account_file.close()
+    for line in lines:
+        data = line.split(',')
+        snapshot_date = date.fromisoformat(data[0].strip())
+        account_number = data[1].strip()
+        custodian_name = data[2].strip()
+        account_description = data[3].strip()
+        market_value = float(data[4].strip())
+        client_first = data[5].strip()
+        client_middle = data[6].strip()
+        client_last = data[7].strip()
+        group_name = data[8].strip()
+        group = Group.query.filter_by(name=group_name).first()
+        if group is None:
+            group = Group(name=group_name)
+            db.session.add(group)
+        account = Account.query.filter_by(account_number=account_number).first()
+        if account is None:
+            custodian = Custodian.query.filter_by(name=custodian_name).first()
+            if custodian is None:
+                custodian = Custodian(name=custodian_name)
+                db.session.add(custodian)
+            client = Client.query.filter_by(first_name=client_first, middle_name=client_middle,
+                                            last_name=client_last).first()
+            if client is None:
+                client = Client(first_name=client_first, middle_name=client_middle, last_name=client_last,
+                                assigned=True, group_id=group.id)
+                db.session.add(client)
+            account = Account(account_number=account_number, description=account_description, billable=True,
+                              custodian_id=custodian.id, client_id=client.id)
+            db.session.add(account)
+        snapshot = AccountSnapshot(date=snapshot_date, market_value=market_value,
+                                   account_id=account.id, quarter_id=quarter_id, group_id=group.id)
+        quarter.aum += market_value
+        db.session.add(snapshot)
+    db.session.add(quarter)
+    db.session.commit()
 
 
 @app.route('/edit_quarter/<quarter_id>', methods=['GET', 'POST'])
 @login_required
 def edit_quarter(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
-    form = QuarterForm()
+    form = EditQuarterForm()
     if form.validate_on_submit():
         quarter.from_date = form.from_date.data
         quarter.to_date = form.to_date.data
