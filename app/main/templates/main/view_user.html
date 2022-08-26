@@ -1,0 +1,28 @@
+{% extends "main/base.html" %}
+
+{% block app_content %}
+    <h1>User: {{ user.username }}</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="btn btn-primary" role="button">Edit Profile</a>
+            {% if current_user.id == user.id %}
+            <a href="{{ url_for('main.change_password', user_id=user.id) }}" class="btn btn-primary" role="button">Change Password</a>
+            {% endif %}
+            <a href="{{ url_for('main.delete_user', user_id=user.id) }}" class="btn btn-danger" role="button">Delete User</a>
+        </div>
+    </div>
+    <div>
+        <h2>User Information</h2>
+        <table class="table">
+            <tr>
+                <td><b>Name: </b>{{ user.get_name() }}</td>
+            </tr>
+            <tr>
+                <td><b>Email Address: </b>{{ user.email }}</td>
+            </tr>
+            <tr>
+                <td><b>Phone: </b>{{ user.phone }}</td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}
