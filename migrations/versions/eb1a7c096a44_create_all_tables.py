@@ -1,8 +1,8 @@
-"""Remake all tables
+"""Create all tables
 
-Revision ID: 9be4b7aeef3a
+Revision ID: eb1a7c096a44
 Revises: 
-Create Date: 2022-08-01 12:37:50.675623
+Create Date: 2022-08-27 12:13:49.090288
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9be4b7aeef3a'
+revision = 'eb1a7c096a44'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,6 +25,10 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_custodian_name'), 'custodian', ['name'], unique=False)
+    op.create_table('fee_schedule',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('group',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=32), nullable=True),
@@ -89,6 +93,15 @@ def upgrade():
     op.create_index(op.f('ix_client_last_name'), 'client', ['last_name'], unique=False)
     op.create_index(op.f('ix_client_middle_name'), 'client', ['middle_name'], unique=False)
     op.create_index(op.f('ix_client_work_phone'), 'client', ['work_phone'], unique=False)
+    op.create_table('fee_rule',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('minimum', sa.Float(), nullable=True),
+    sa.Column('maximum', sa.Float(), nullable=True),
+    sa.Column('rate', sa.Float(), nullable=True),
+    sa.Column('schedule_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['schedule_id'], ['fee_schedule.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('account',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('account_number', sa.String(length=32), nullable=True),
@@ -97,8 +110,10 @@ def upgrade():
     sa.Column('discretionary', sa.Boolean(), nullable=True),
     sa.Column('client_id', sa.Integer(), nullable=True),
     sa.Column('custodian_id', sa.Integer(), nullable=True),
+    sa.Column('schedule_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['client_id'], ['client.id'], ),
     sa.ForeignKeyConstraint(['custodian_id'], ['custodian.id'], ),
+    sa.ForeignKeyConstraint(['schedule_id'], ['fee_schedule.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_account_account_number'), 'account', ['account_number'], unique=False)
@@ -108,6 +123,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=True),
     sa.Column('market_value', sa.Float(), nullable=True),
+    sa.Column('fee', sa.Float(), nullable=True),
     sa.Column('account_id', sa.Integer(), nullable=True),
     sa.Column('quarter_id', sa.Integer(), nullable=True),
     sa.Column('group_id', sa.Integer(), nullable=True),
@@ -160,6 +176,7 @@ def downgrade():
     op.drop_index(op.f('ix_account_billable'), table_name='account')
     op.drop_index(op.f('ix_account_account_number'), table_name='account')
     op.drop_table('account')
+    op.drop_table('fee_rule')
     op.drop_index(op.f('ix_client_work_phone'), table_name='client')
     op.drop_index(op.f('ix_client_middle_name'), table_name='client')
     op.drop_index(op.f('ix_client_last_name'), table_name='client')
@@ -184,6 +201,7 @@ def downgrade():
     op.drop_table('quarter')
     op.drop_index(op.f('ix_group_name'), table_name='group')
     op.drop_table('group')
+    op.drop_table('fee_schedule')
     op.drop_index(op.f('ix_custodian_name'), table_name='custodian')
     op.drop_table('custodian')
     # ### end Alembic commands ###

@@ -70,6 +70,7 @@ class Account(db.Model):
     discretionary = db.Column(db.Boolean, index=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
+    schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
     snapshots = db.relationship('AccountSnapshot', backref='account', lazy='dynamic')
     positions = db.relationship('Position', backref='account', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='account', lazy='dynamic')
@@ -184,6 +185,7 @@ class AccountSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
     market_value = db.Column(db.Float)
+    fee = db.Column(db.Float)
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
@@ -209,3 +211,17 @@ class AccountSnapshot(db.Model):
     def get_quarter_name(self):
         quarter = Quarter.query.get(self.quarter_id)
         return quarter.name
+
+
+class FeeSchedule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    accounts = db.relationship('Account', backref='FeeSchedule', lazy='dynamic')
+    rules = db.relationship('FeeRule', backref='FeeSchedule', lazy='dynamic')
+
+
+class FeeRule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    minimum = db.Column(db.Float)
+    maximum = db.Column(db.Float)
+    rate = db.Column(db.Float)
+    schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
