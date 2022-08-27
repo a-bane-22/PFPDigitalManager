@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Client Information</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{{ url_for('main.edit_client', client_id=client.id) }}" class="btn btn-primary" role="button">Edit Client</a>
+            <a href="{{ url_for('main.assign_client', client_id=client.id) }}" class="btn btn-primary" role="button">Assign Client</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{{ url_for('main.add_account', client_id=client.id) }}" class="btn btn-primary" role="button">Add Account</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <tr>
+                <td>Group Name</td>
+                {% if client.assigned %}
+                    <td><a href="{{ url_for('main.view_group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
+                {% else %}
+                    <td>Unassigned</td>
+                {% endif %}
+            </tr>
+            <tr>
+                <td>First Name</td>
+                <td>{{ client.first_name }}</td>
+            </tr>
+            <tr>
+                <td>Middle Name</td>
+                <td>{{ client.middle_name }}</td>
+            </tr>
+            <tr>
+                <td>Last Name</td>
+                <td>{{ client.last_name }}</td>
+            </tr>
+            <tr>
+                <td>DOB</td>
+                <td>{{ client.dob }}</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>{{ client.email }}</td>
+            </tr>
+            <tr>
+                <td>Cell Phone</td>
+                <td>{{ client.cell_phone }}</td>
+            </tr>
+            <tr>
+                <td>Work Phone</td>
+                <td>{{ client.work_phone }}</td>
+            </tr>
+            <tr>
+                <td>Home Phone</td>
+                <td>{{ client.home_phone }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>Description</th>
+                    <th>Billable</th>
+                    <th>Discretionary</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td><a href="{{ url_for('main.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                    <td>{{ account.description }}</td>
+                    <td>{{ account.billable }}</td>
+                    <td>{{ account.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

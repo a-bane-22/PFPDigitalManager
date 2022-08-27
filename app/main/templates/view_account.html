@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Account Dashboard</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ url_for('main.add_transaction', account_id=account.id) }}" class="btn btn-primary" role="button">Add Transaction</a>
+            <a href="{{ url_for('main.edit_account', account_id=account.id) }}" class="btn btn-primary" role="button">Edit Account</a>
+            <a href="{{ url_for('main.add_account_snapshot', account_id=account.id) }}" class="btn btn-primary" role="button">Add Account Snapshot</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Account Information</h2>
+            <p><b>Account Number: </b>{{ account.account_number }}</p>
+            <p><b>Client: </b><a href="{{ url_for('main.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></p>
+            <p><b>Custodian: </b><a href="{{ url_for('main.view_custodian', custodian_id=account.custodian_id) }}">{{ account.get_custodian_name() }}</a></p>
+            <p><b>Description: </b>{{ account.description }}</p>
+            <p><b>Billable: </b>{{ account.billable }}</p>
+            <p><b>Discretionary: </b>{{ account.discretionary }}</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Positions</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Security</th>
+                            <th>Quantity</th>
+                            <th>Cost Basis</th>
+                            <th>View Position</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for position in positions %}
+                        <tr>
+                            <td><a href="{{ url_for('main.view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
+                            <td>{{ position.quantity }}</td>
+                            <td>{{ position.cost_basis }}</td>
+                            <td><a href="{{ url_for('main.view_position', position_id=position.id) }}">View Position</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Transactions</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Security</th>
+                            <th>Quantity</th>
+                            <th>Share Price</th>
+                            <th>Gross Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for transaction in transactions %}
+                        <tr>
+                            <td><a href="{{ url_for('main.view_transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
+                            <td>{{ transaction.type }}</td>
+                            <td><a href="{{ url_for('main.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
+                            <td>{{ transaction.quantity }}</td>
+                            <td>{{ transaction.share_price }}</td>
+                            <td>{{ transaction.gross_amount }}</td>
+                            <td>{{ transaction.description }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Account Snapshots</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Market Value</th>
+                            <th>Quarter</th>
+                            <th>Group</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for snapshot in snapshots %}
+                        <tr>
+                            <td><a href="{{ url_for('main.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                            <td>{{ snapshot.market_value }}</td>
+                            <td><a href="{{ url_for('main.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
+                            {% if snapshot.assigned_group() %}
+                            <td><a href="{{ url_for('main.view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
+                            {% else %}
+                            <td>Unassigned</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Transaction Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{{ url_for('main.view_position', position_id=transaction.position_id) }}" class="btn btn-primary" role="button">View Position</a>
+            <a href="{{ url_for('main.edit_transaction', transaction_id=transaction.id) }}" class="btn btn-primary" role="button">Edit Transaction</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Transaction Details</h2>
+            <p><b>Date: </b>{{ transaction.date }}</p>
+            <p><b>Account: </b><a href="{{ url_for('main.view_account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></p>
+            <p><b>Type: </b>{{ transaction.type }}</p>
+            <p><b>Security: </b><a href="{{ url_for('main.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></p>
+            <p><b>Quantity: </b>{{ transaction.quantity }}</p>
+            <p><b>Share Price: </b>{{ transaction.share_price }}</p>
+            <p><b>Gross Amount: </b>{{ transaction.gross_amount }}</p>
+            <p><b>Description: </b>{{ transaction.description }}</p>
+        </div>
+    </div>
+{% endblock %}

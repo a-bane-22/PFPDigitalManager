@@ -16,21 +16,21 @@ import os
 @bp.route('/')
 @bp.route('/index')
 def index():
-    return render_template('main/index.html', title='Home')
+    return render_template('index.html', title='Home')
 
 
 @bp.route('/view_users')
 @login_required
 def view_users():
     users = User.query.all()
-    return render_template('main/view_users.html', title='Users', users=users)
+    return render_template('view_users.html', title='Users', users=users)
 
 
 @bp.route('/view_user/<user_id>')
 @login_required
 def view_user(user_id):
     user = User.query.get(int(user_id))
-    return render_template('main/view_user.html', title='User Dashboard', user=user)
+    return render_template('view_user.html', title='User Dashboard', user=user)
 
 
 @bp.route('/add_user', methods=['GET', 'POST'])
@@ -44,7 +44,7 @@ def add_user():
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('main.view_user', user_id=user.id))
-    return render_template('main/add_user.html', title='Add User', form=form)
+    return render_template('add_user.html', title='Add User', form=form)
 
 
 @bp.route('/edit_user/<user_id>', methods=['GET', 'POST'])
@@ -64,7 +64,7 @@ def edit_user(user_id):
     form.last_name.data = user.last_name
     form.email.data = user.email
     form.phone.data = user.phone
-    return render_template('main/edit_user.html', title='Edit User', form=form)
+    return render_template('edit_user.html', title='Edit User', form=form)
 
 
 @bp.route('/change_password/<user_id>', methods=['GET', 'POST'])
@@ -81,7 +81,7 @@ def change_password(user_id):
         else:
             flash('The password provided was not correct')
             return redirect(url_for('main.change_password', user_id=user.id))
-    return render_template('main/change_password.html', title='Change Password', form=form)
+    return render_template('change_password.html', title='Change Password', form=form)
 
 
 @bp.route('/delete_user/<user_id>', methods=['GET', 'POST'])
@@ -98,14 +98,14 @@ def delete_user(user_id):
             return redirect(url_for('main.index'))
         else:
             return redirect(url_for('main.index'))
-    return render_template('main/delete_user.html', title='Delete User', form=form, user=user)
+    return render_template('delete_user.html', title='Delete User', form=form, user=user)
 
 
 @bp.route('/view_clients')
 @login_required
 def view_clients():
     clients = Client.query.all()
-    return render_template('main/view_clients.html', title='Clients', clients=clients)
+    return render_template('view_clients.html', title='Clients', clients=clients)
 
 
 @bp.route('/view_client/<client_id>')
@@ -113,7 +113,7 @@ def view_clients():
 def view_client(client_id):
     client = Client.query.get(int(client_id))
     accounts = client.accounts
-    return render_template('main/view_client.html', title='Client Dashboard', client=client, accounts=accounts)
+    return render_template('view_client.html', title='Client Dashboard', client=client, accounts=accounts)
 
 
 @bp.route('/add_client', methods=['GET', 'POST'])
@@ -128,7 +128,7 @@ def add_client():
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('main.view_client', client_id=client.id))
-    return render_template('main/add_client.html', title='Add Client', form=form)
+    return render_template('add_client.html', title='Add Client', form=form)
 
 
 @bp.route('/edit_client/<client_id>', methods=['GET', 'POST'])
@@ -157,14 +157,14 @@ def edit_client(client_id):
     form.cell_phone.data = client.cell_phone
     form.work_phone.data = client.work_phone
     form.home_phone.data = client.home_phone
-    return render_template('main/edit_client.html', title='Edit Client', form=form)
+    return render_template('edit_client.html', title='Edit Client', form=form)
 
 
 @bp.route('/view_groups')
 @login_required
 def view_groups():
     groups = Group.query.all()
-    return render_template('main/view_groups.html', title='Groups', groups=groups)
+    return render_template('view_groups.html', title='Groups', groups=groups)
 
 
 @bp.route('/view_group/<group_id>')
@@ -172,7 +172,7 @@ def view_groups():
 def view_group(group_id):
     group = Group.query.get(int(group_id))
     clients = group.clients
-    return render_template('main/view_group.html', title='Group Dashboard', group=group, clients=clients)
+    return render_template('view_group.html', title='Group Dashboard', group=group, clients=clients)
 
 
 @bp.route('/add_group/', methods=['GET', 'POST'])
@@ -184,7 +184,7 @@ def add_group():
         db.session.add(group)
         db.session.commit()
         return redirect(url_for('main.view_group', group_id=group.id))
-    return render_template('main/add_group.html', title='Add Group', form=form)
+    return render_template('add_group.html', title='Add Group', form=form)
 
 
 @bp.route('/edit_group/<group_id>', methods=['GET', 'POST'])
@@ -198,7 +198,7 @@ def edit_group(group_id):
         db.session.commit()
         return redirect(url_for('main.view_group', group_id=group.id))
     form.name.data = group.name
-    return render_template('main/edit_group.html', title='Edit Group', form=form)
+    return render_template('edit_group.html', title='Edit Group', form=form)
 
 
 @bp.route('/assign_clients/<group_id>', methods=['GET', 'POST'])
@@ -225,7 +225,7 @@ def assign_clients(group_id):
         choices.append((client.id, client.get_name()))
     form.selections.choices = choices
     form.selections.size = len(unassigned_clients)
-    return render_template('main/assign_clients.html', title='Assign Clients', group=group, form=form)
+    return render_template('assign_clients.html', title='Assign Clients', group=group, form=form)
 
 
 @bp.route('/assign_client/<client_id>', methods=['GET', 'POST'])
@@ -248,14 +248,14 @@ def assign_client(client_id):
                 db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('main.view_client', client_id=client_id))
-    return render_template('main/assign_client.html', title='Assign Client', client=client, form=form)
+    return render_template('assign_client.html', title='Assign Client', client=client, form=form)
 
 
 @bp.route('/view_accounts')
 @login_required
 def view_accounts():
     accounts = Account.query.all()
-    return render_template('main/view_accounts.html', title='Accounts', accounts=accounts)
+    return render_template('view_accounts.html', title='Accounts', accounts=accounts)
 
 
 @bp.route('/view_account/<account_id>')
@@ -265,7 +265,7 @@ def view_account(account_id):
     positions = account.positions
     transactions = account.transactions
     snapshots = account.snapshots
-    return render_template('main/view_account.html', title='Account Dashboard', account=account,
+    return render_template('view_account.html', title='Account Dashboard', account=account,
                            positions=positions, transactions=transactions, snapshots=snapshots)
 
 
@@ -286,7 +286,7 @@ def add_account(client_id):
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))
-    return render_template('main/add_account.html', title='Add Account', form=form, client=client)
+    return render_template('add_account.html', title='Add Account', form=form, client=client)
 
 
 @bp.route('/edit_account/<account_id>', methods=['GET', 'POST'])
@@ -311,7 +311,7 @@ def edit_account(account_id):
     for custodian in custodians:
         choices.append((custodian.id, custodian.name))
     form.custodian.choices = choices
-    return render_template('main/edit_account.html', title='Edit Account', form=form)
+    return render_template('edit_account.html', title='Edit Account', form=form)
 
 
 @bp.route('/delete_account/<account_id>')
@@ -332,7 +332,7 @@ def delete_account(account_id):
 @login_required
 def view_account_snapshots():
     snapshots = AccountSnapshot.query.all()
-    return render_template('main/view_account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
+    return render_template('view_account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
 
 
 @bp.route('/view_account_snapshot/<snapshot_id>')
@@ -340,7 +340,7 @@ def view_account_snapshots():
 def view_account_snapshot(snapshot_id):
     snapshot = AccountSnapshot.query.get(int(snapshot_id))
     account = Account.query.get(snapshot.account_id)
-    return render_template('main/view_account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
+    return render_template('view_account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
 
 
 @bp.route('/create_account_snapshot/<account_id>', methods=['GET', 'POST'])
@@ -363,7 +363,7 @@ def add_account_snapshot(account_id):
         db.session.add(quarter)
         db.session.commit()
         return redirect(url_for('main.view_account_snapshot', snapshot_id=snapshot.id))
-    return render_template('main/add_account_snapshot.html', title='Add Account Snapshot', form=form)
+    return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
 
 
 @bp.route('/delete_account_snapshot/<snapshot_id>')
@@ -395,14 +395,14 @@ def delete_all_account_snapshots():
 @login_required
 def view_custodians():
     custodians = Custodian.query.all()
-    return render_template('main/view_custodians.html', title='Custodians', custodians=custodians)
+    return render_template('view_custodians.html', title='Custodians', custodians=custodians)
 
 
 @bp.route('/view_custodian/<custodian_id>')
 @login_required
 def view_custodian(custodian_id):
     custodian = Custodian.query.get(int(custodian_id))
-    return render_template('main/view_custodian.html', title='Custodian Dashboard', custodian=custodian)
+    return render_template('view_custodian.html', title='Custodian Dashboard', custodian=custodian)
 
 
 @bp.route('/add_custodian', methods=['GET', 'POST'])
@@ -414,7 +414,7 @@ def add_custodian():
         db.session.add(custodian)
         db.session.commit()
         return redirect(url_for('main.view_custodian', custodian_id=custodian.id))
-    return render_template('main/add_custodian.html', title='Add Custodian', form=form)
+    return render_template('add_custodian.html', title='Add Custodian', form=form)
 
 
 @bp.route('/edit_custodian/<custodian_id>', methods=['GET', 'POST'])
@@ -430,14 +430,14 @@ def edit_custodian(custodian_id):
         return redirect(url_for('main.view_custodian', custodian_id=custodian.id))
     form.name.data = custodian.name
     form.description.data = custodian.description
-    return render_template('main/edit_custodian.html', title='Edit Custodian', form=form)
+    return render_template('edit_custodian.html', title='Edit Custodian', form=form)
 
 
 @bp.route('/view_securities')
 @login_required
 def view_securities():
     securities = Security.query.all()
-    return render_template('main/view_securities.html', title='Securities', securities=securities)
+    return render_template('view_securities.html', title='Securities', securities=securities)
 
 
 @bp.route('/view_security/<security_id>')
@@ -446,7 +446,7 @@ def view_security(security_id):
     security = Security.query.get(int(security_id))
     positions = security.positions
     transactions = security.transactions
-    return render_template('main/view_security.html', title='Security', security=security, positions=positions,
+    return render_template('view_security.html', title='Security', security=security, positions=positions,
                            transactions=transactions)
 
 
@@ -459,7 +459,7 @@ def add_security():
         db.session.add(security)
         db.session.commit()
         return redirect(url_for('main.view_security', security_id=security.id))
-    return render_template('main/add_security.html', title='Add Security', form=form)
+    return render_template('add_security.html', title='Add Security', form=form)
 
 
 @bp.route('/edit_security/<security_id>', methods=['GET', 'POST'])
@@ -475,14 +475,14 @@ def edit_security(security_id):
         return redirect(url_for('main.view_security', security_id=security.id))
     form.name.data = security.name
     form.description.data = security.description
-    return render_template('main/edit_security.html', title='Edit Security', form=form, security=security)
+    return render_template('edit_security.html', title='Edit Security', form=form, security=security)
 
 
 @bp.route('/view_positions')
 @login_required
 def view_positions():
     positions = Position.query.all()
-    return render_template('main/view_positions.html', title='Positions', positions=positions)
+    return render_template('view_positions.html', title='Positions', positions=positions)
 
 
 @bp.route('/view_position/<position_id>')
@@ -490,21 +490,21 @@ def view_positions():
 def view_position(position_id):
     position = Position.query.get(int(position_id))
     transactions = position.transactions
-    return render_template('main/view_position.html', title='Position', position=position, transactions=transactions)
+    return render_template('view_position.html', title='Position', position=position, transactions=transactions)
 
 
 @bp.route('/view_transactions')
 @login_required
 def view_transactions():
     transactions = Transaction.query.all()
-    return render_template('main/view_transactions.html', title='Transactions', transactions=transactions)
+    return render_template('view_transactions.html', title='Transactions', transactions=transactions)
 
 
 @bp.route('/view_transaction/<transaction_id>')
 @login_required
 def view_transaction(transaction_id):
     transaction = Transaction.query.get(int(transaction_id))
-    return render_template('main/view_transaction.html', title='Transaction', transaction=transaction)
+    return render_template('view_transaction.html', title='Transaction', transaction=transaction)
 
 
 @bp.route('/add_transaction/<account_id>', methods=['GET', 'POST'])
@@ -536,7 +536,7 @@ def add_transaction(account_id):
         db.session.add(position)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account_id))
-    return render_template('main/add_transaction.html', title='Add Transaction', form=form, account=account)
+    return render_template('add_transaction.html', title='Add Transaction', form=form, account=account)
 
 
 @bp.route('/add_transaction_redirect')
@@ -570,7 +570,7 @@ def edit_transaction(transaction_id):
     form.share_price.data = transaction.share_price
     form.gross_amount.data = transaction.gross_amount
     form.description.data = transaction.description
-    return render_template('main/edit_transaction.html', title='Edit Transaction', form=form)
+    return render_template('edit_transaction.html', title='Edit Transaction', form=form)
 
 
 @bp.route('/upload_transactions', methods=['GET', 'POST'])
@@ -616,7 +616,7 @@ def upload_transactions():
             db.session.add(position)
         db.session.commit()
         return redirect(url_for('main.view_transactions'))
-    return render_template('main/upload_transaction_file.html', title='Upload Transaction File', form=form)
+    return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
 
 
 @bp.route('/delete_transaction/<transaction_id>')
@@ -635,7 +635,7 @@ def delete_transaction(transaction_id):
 @login_required
 def view_quarters():
     quarters = Quarter.query.all()
-    return render_template('main/view_quarters.html', title='View Quarters', quarters=quarters)
+    return render_template('view_quarters.html', title='View Quarters', quarters=quarters)
 
 
 @bp.route('/view_quarter/<quarter_id>')
@@ -643,7 +643,7 @@ def view_quarters():
 def view_quarter(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
     snapshots = quarter.account_snapshots
-    return render_template('main/view_quarter.html', title='View Quarter', quarter=quarter, snapshots=snapshots)
+    return render_template('view_quarter.html', title='View Quarter', quarter=quarter, snapshots=snapshots)
 
 
 @bp.route('/add_quarter', methods=['GET', 'POST'])
@@ -660,7 +660,7 @@ def add_quarter():
         f.save(account_filename)
         create_account_snapshots_from_file(quarter_id=quarter.id, filename=account_filename)
         return redirect(url_for('main.view_quarter', quarter_id=quarter.id))
-    return render_template('main/add_quarter.html', title='Add Quarter', form=form)
+    return render_template('add_quarter.html', title='Add Quarter', form=form)
 
 
 # MOVE TO ROUTE HELPER FILE
@@ -718,7 +718,7 @@ def edit_quarter(quarter_id):
     form.from_date.data = quarter.from_date
     form.to_date.data = quarter.to_date
     form.name.data = quarter.name
-    return render_template('main/edit_quarter.html', title='Edit Quarter', form=form)
+    return render_template('edit_quarter.html', title='Edit Quarter', form=form)
 
 
 @bp.route('/delete_quarter/<quarter_id>')

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Clients</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Group Name</th>
+                    <th>Client Name</th>
+                    <th>DOB</th>
+                    <th>Email</th>
+                    <th>Cell Phone</th>
+                    <th>Work Phone</th>
+                    <th>Home Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for client in clients %}
+                <tr>
+                {% if client.assigned %}
+                    <td><a href="{{ url_for('main.view_group', group_id=client.group_id) }}">{{ client.get_group_name() }}</a></td>
+                {% else %}
+                    <td>Unassigned</td>
+                {% endif %}
+                    <td><a href="{{ url_for('main.view_client', client_id=client.id) }}">{{ client.get_full_name() }}</a></td>
+                    <td>{{ client.dob }}</td>
+                    <td>{{ client.email }}</td>
+                    <td>{{ client.cell_phone }}</td>
+                    <td>{{ client.work_phone }}</td>
+                    <td>{{ client.home_phone }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
