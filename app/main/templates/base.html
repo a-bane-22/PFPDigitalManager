@@ -31,6 +31,7 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Account<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('main.view_accounts') }}">View Accounts</a></li>
+                            <li><a href="{{ url_for('main.upload_accounts') }}">Upload Accounts</a></li>
                             <li><a href="{{ url_for('main.view_account_snapshots') }}">View Account Snapshots</a></li>
                             <li><a href="{{ url_for('main.delete_all_account_snapshots') }}">DELETE ALL SNAPSHOTS</a></li>
                         </ul>
@@ -39,7 +40,9 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Client<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('main.add_client') }}">Add Client</a></li>
+                            <li><a href="{{ url_for('main.upload_clients') }}">Upload Clients</a></li>
                             <li><a href="{{ url_for('main.view_clients') }}">View Clients</a></li>
+                            <li><a href="{{ url_for('main.delete_all_clients') }}">DELETE ALL CLIENTS</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">

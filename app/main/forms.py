@@ -21,13 +21,11 @@ class AddUserForm(FlaskForm):
     password_2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
-    @staticmethod
-    def validate_username(username):
+    def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user is not None:
             raise ValidationError('Please use a different username')
 
-    @staticmethod
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
@@ -135,8 +133,8 @@ class TransactionForm(FlaskForm):
     submit = SubmitField('Save')
 
 
-class UploadTransactionForm(FlaskForm):
-    transaction_file = FileField('Transaction File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+class UploadFileForm(FlaskForm):
+    upload_file = FileField('File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
     submit = SubmitField('Upload')
 
 
@@ -152,4 +150,17 @@ class AddQuarterForm(QuarterForm):
 
 
 class EditQuarterForm(QuarterForm):
+    submit = SubmitField('Save')
+
+
+class FeeScheduleForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    submit = SubmitField('Save')
+
+
+class FeeRuleForm(FlaskForm):
+    minimum = FloatField('Minimum', validators=[DataRequired()])
+    maximum = FloatField('Maximum', validators=[DataRequired()])
+    rate = FloatField('Rate', validators=[DataRequired()])
+    flat = FloatField('Flat Fee', validators=[DataRequired()])
     submit = SubmitField('Save')

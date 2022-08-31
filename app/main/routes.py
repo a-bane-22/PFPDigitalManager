@@ -7,10 +7,20 @@ from app.models import (User, Client, Group, Account, AccountSnapshot, Custodian
 from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, DeleteUserForm,
                             ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                             CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
-                            UploadTransactionForm, AddQuarterForm, EditQuarterForm)
+                            UploadFileForm, AddQuarterForm, EditQuarterForm)
 from app.main import bp
 from datetime import date
 import os
+
+
+def upload_file(file_object):
+    filename = os.path.join('uploads/files/' + secure_filename(file_object.filename))
+    file_object.save(filename)
+    data_file = open(filename, 'r')
+    data_file.readline()
+    lines = data_file.readlines()
+    data_file.close()
+    return lines
 
 
 @bp.route('/')
@@ -131,6 +141,42 @@ def add_client():
     return render_template('add_client.html', title='Add Client', form=form)
 
 
+@bp.route('/upload_clients', methods=['GET', 'POST'])
+@login_required
+def upload_clients():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        f = form.upload_file.data
+        lines = upload_file(file_object=f)
+        for line in lines:
+            data = line.split(',')
+            first = data[0].strip()
+            middle = data[1].strip()
+            last = data[2].strip()
+            dob = date.fromisoformat(data[3].strip())
+            email = data[4].strip()
+            cell = data[5].strip()
+            work = data[6].strip()
+            home = data[7].strip()
+            group_name = data[8].strip()
+            group_id = None
+            assigned = False
+            if group_name is not None:
+                assigned = True
+                group = Group.query.filter_by(name=group_name).first()
+                if group is None:
+                    group = Group(name=group_name)
+                    db.session.add(group)
+                    db.session.commit()
+                group_id=group.id
+            client = Client(first_name=first, middle_name=middle, last_name=last, dob=dob, email=email,
+                            cell_phone=cell, work_phone=work, home_phone=home, group_id=group_id, assigned=assigned)
+            db.session.add(client)
+        db.session.commit()
+        return redirect(url_for('main.view_clients'))
+    return render_template('upload_client_file.html', title='Upload Clients', form=form)
+
+
 @bp.route('/edit_client/<client_id>', methods=['GET', 'POST'])
 @login_required
 def edit_client(client_id):
@@ -158,6 +204,25 @@ def edit_client(client_id):
     form.work_phone.data = client.work_phone
     form.home_phone.data = client.home_phone
     return render_template('edit_client.html', title='Edit Client', form=form)
+
+
+@bp.route('/delete_client/<client_id>')
+@login_required
+def delete_client(client_id):
+    client = Client.query.get(int(client_id))
+    db.session.delete(client)
+    db.session.commit()
+    return redirect(url_for('main.view_clients'))
+
+
+@bp.route('/delete_all_clients')
+@login_required
+def delete_all_clients():
+    clients = Client.query.all()
+    for client in clients:
+        db.session.delete(client)
+    db.session.commit()
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/view_groups')
@@ -287,6 +352,37 @@ def add_account(client_id):
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))
     return render_template('add_account.html', title='Add Account', form=form, client=client)
+
+
+@bp.route('/upload_accounts', methods=['GET', 'POST'])
+@login_required
+def upload_accounts():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        f = form.upload_file.data
+        lines = upload_file(file_object=f)
+        for line in lines:
+            data = line.split(',')
+            account_number = data[0].strip()
+            description = data[1].strip()
+            client_first = data[2].strip()
+            client_last = data[3].strip()
+            custodian_name = data[4].strip()
+            billable = (data[5].strip().lower() == 'true')
+            discretionary = (data[6].strip().lower() == 'true')
+            client = Client.query.filter_by(first_name=client_first, last_name=client_last).first()
+            if client is not None:
+                custodian = Custodian.query.filter_by(name=custodian_name).first()
+                if custodian is None:
+                    custodian = Custodian(name=custodian_name)
+                    db.session.add(custodian)
+                    db.session.commit()
+                account = Account(account_number=account_number, description=description, billable=billable,
+                                  discretionary=discretionary, client_id=client.id, custodian_id=custodian.id)
+                db.session.add(account)
+        db.session.commit()
+        return redirect(url_for('main.view_accounts'))
+    return render_template('upload_account_file.html', title='Upload Accounts', form=form)
 
 
 @bp.route('/edit_account/<account_id>', methods=['GET', 'POST'])
@@ -478,6 +574,12 @@ def edit_security(security_id):
     return render_template('edit_security.html', title='Edit Security', form=form, security=security)
 
 
+@bp.route('/upload_securities', methods=['GET', 'POST'])
+@login_required
+def upload_securities():
+    return render_template('upload_securities.html', title='Upload Securities')
+
+
 @bp.route('/view_positions')
 @login_required
 def view_positions():
@@ -576,9 +678,9 @@ def edit_transaction(transaction_id):
 @bp.route('/upload_transactions', methods=['GET', 'POST'])
 @login_required
 def upload_transactions():
-    form = UploadTransactionForm()
+    form = UploadFileForm()
     if form.validate_on_submit():
-        f = form.transaction_file.data
+        f = form.upload_file.data
         transaction_filename = os.path.join('uploads/files/' + secure_filename(f.filename))
         f.save(transaction_filename)
         transaction_file = open(transaction_filename, 'r')

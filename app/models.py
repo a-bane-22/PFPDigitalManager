@@ -212,9 +212,24 @@ class AccountSnapshot(db.Model):
         quarter = Quarter.query.get(self.quarter_id)
         return quarter.name
 
+    def calculate_fee(self):
+        account = Account.query.get(self.account_id)
+        fee = 0
+        if account.billable:
+            schedule = FeeSchedule.query.get(account.schedule_id)
+            for rule in schedule.rules:
+                fee += rule.flat
+                if self.aum > rule.minimum:
+                    if self.aum < rule.maximum:
+                        fee += (self.aum - rule.minimum) * (rule.rate/4)
+                    else:
+                        fee += (rule.maximum - rule.minimum) * (rule.rate/4)
+        self.fee = fee
+
 
 class FeeSchedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32), index=True)
     accounts = db.relationship('Account', backref='FeeSchedule', lazy='dynamic')
     rules = db.relationship('FeeRule', backref='FeeSchedule', lazy='dynamic')
 
@@ -224,4 +239,5 @@ class FeeRule(db.Model):
     minimum = db.Column(db.Float)
     maximum = db.Column(db.Float)
     rate = db.Column(db.Float)
+    flat = db.Column(db.Float)
     schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
