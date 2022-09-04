@@ -83,6 +83,16 @@ class Account(db.Model):
         custodian = Custodian.query.get(self.custodian_id)
         return custodian.name
 
+    def get_fee_schedule_name(self):
+        schedule = FeeSchedule.query.get(self.schedule_id)
+        return schedule.name
+
+    # POST: Returns True if schedule_id is not None
+    def assigned_fee_schedule(self):
+        assigned = False
+        if self.schedule_id is not None:
+            assigned = True
+        return assigned
 
 class Custodian(db.Model):
     id = db.Column(db.Integer, primary_key=True)

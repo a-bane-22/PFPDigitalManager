@@ -7,6 +7,7 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Assign Schedule</th>
                     <th>Delete Schedule</th>
                 </tr>
             </thead>
@@ -14,6 +15,7 @@
             {% for schedule in schedules %}
                 <tr>
                     <td><a href="{{ url_for('main.view_fee_schedule', schedule_id=schedule.id) }}">{{ schedule.name }}</a></td>
+                    <td><a href="{{ url_for('main.assign_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Assign</a></td>
                     <td><a href="{{ url_for('main.delete_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>
             {% endfor %}

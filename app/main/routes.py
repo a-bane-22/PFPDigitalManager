@@ -7,7 +7,8 @@ from app.models import (User, Client, Group, Account, AccountSnapshot, Custodian
 from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, DeleteUserForm,
                             ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                             CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
-                            UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm)
+                            UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm,
+                            AssignFeeScheduleForm)
 from app.main import bp
 from datetime import date
 import os
@@ -168,7 +169,7 @@ def upload_clients():
                     group = Group(name=group_name)
                     db.session.add(group)
                     db.session.commit()
-                group_id=group.id
+                group_id = group.id
             client = Client(first_name=first, middle_name=middle, last_name=last, dob=dob, email=email,
                             cell_phone=cell, work_phone=work, home_phone=home, group_id=group_id, assigned=assigned)
             db.session.add(client)
@@ -289,7 +290,7 @@ def assign_clients(group_id):
     for client in unassigned_clients:
         choices.append((client.id, client.get_name()))
     form.selections.choices = choices
-    form.selections.size = len(unassigned_clients)
+    form.selections.size = len(choices)
     return render_template('assign_clients.html', title='Assign Clients', group=group, form=form)
 
 
@@ -334,20 +335,40 @@ def view_account(account_id):
                            positions=positions, transactions=transactions, snapshots=snapshots)
 
 
+# PRE:  The Custodian data table must be defined with rows id and name
+# POST: Returns a list of tuples (custodian.id, custodian.name) for each custodian in Custodian
+def get_custodian_choices():
+    custodians = Custodian.query.all()
+    choices = []
+    for custodian in custodians:
+        choices.append((custodian.id, custodian.name))
+    return choices
+
+
+# PRE:  The FeeSchedule data table must be defined with rows id and name
+# POST: Returns a list of tuples (fee_schedule.id, fee_schedule.name) for each fee_schedule in FeeSchedule
+def get_fee_schedule_choices():
+    fee_schedules = FeeSchedule.query.all()
+    choices = [(None, 'Unassigned')]
+    for fee_schedule in fee_schedules:
+        choices.append((fee_schedule.id, fee_schedule.name))
+    return choices
+
+
 @bp.route('/add_account/<client_id>', methods=['GET', 'POST'])
 @login_required
 def add_account(client_id):
     client = Client.query.get(int(client_id))
     form = AccountForm()
-    custodians = Custodian.query.all()
-    choices = []
-    for custodian in custodians:
-        choices.append((custodian.id, custodian.name))
-    form.custodian.choices = choices
+    custodian_choices = get_custodian_choices()
+    fee_schedule_choices = get_fee_schedule_choices()
+    form.custodian.choices = custodian_choices
+    form.fee_schedule.choices = fee_schedule_choices
     if form.validate_on_submit():
         account = Account(account_number=form.account_number.data, description=form.description.data,
                           discretionary=form.discretionary.data, billable=form.billable.data,
-                          client_id=int(client_id), custodian_id=form.custodian.data)
+                          client_id=int(client_id), custodian_id=form.custodian.data,
+                          schedule_id=form.fee_schedule.data)
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))
@@ -390,11 +411,16 @@ def upload_accounts():
 def edit_account(account_id):
     account = Account.query.get(int(account_id))
     form = AccountForm()
+    custodian_choices = get_custodian_choices()
+    fee_schedule_choices = get_fee_schedule_choices()
+    form.custodian.choices = custodian_choices
+    form.fee_schedule.choices = fee_schedule_choices
     if form.validate_on_submit():
         account.account_number = form.account_number.data
         account.description = form.description.data
         account.billable = form.billable.data
         account.discretionary = form.discretionary.data
+        account.schedule_id = form.fee_schedule.data
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))
@@ -402,11 +428,6 @@ def edit_account(account_id):
     form.description.data = account.description
     form.billable.data = account.billable
     form.discretionary.data = account.discretionary
-    custodians = Custodian.query.all()
-    choices = []
-    for custodian in custodians:
-        choices.append((custodian.id, custodian.name))
-    form.custodian.choices = choices
     return render_template('edit_account.html', title='Edit Account', form=form)
 
 
@@ -872,6 +893,28 @@ def edit_fee_schedule(schedule_id):
         return redirect(url_for('main.view_fee_schedule', schedule_id=schedule.id))
     form.name.data = schedule.name
     return render_template('edit_fee_schedule.html', title='Edit Fee Schedule', form=form)
+
+
+@bp.route('/assign_fee_schedule/<schedule_id>', methods=['GET', 'POST'])
+@login_required
+def assign_fee_schedule(schedule_id):
+    schedule = FeeSchedule.query.get(int(schedule_id))
+    form = AssignFeeScheduleForm()
+    accounts = Account.query.filter_by(schedule_id=None)
+    choices = []
+    for account in accounts:
+        choices.append((account.id, account.account_number))
+    form.accounts.choices = choices
+    form.accounts.size = len(choices)
+    if form.validate_on_submit():
+        assigned_accounts = form.accounts.data
+        for account_id in assigned_accounts:
+            account = Account.query.get(int(account_id))
+            account.schedule_id = schedule.id
+            db.session.add(account)
+        db.session.commit()
+        return redirect(url_for('main.view_fee_schedule', schedule_id=schedule_id))
+    return render_template('assign_fee_schedule.html', title='Assign Fee Schedule', form=form, schedule=schedule)
 
 
 @bp.route('/delete_fee_schedule/<schedule_id>')

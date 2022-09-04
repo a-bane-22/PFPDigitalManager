@@ -85,6 +85,7 @@ class AccountForm(FlaskForm):
     description = StringField('Description', validators=[InputRequired()])
     billable = BooleanField('Billable')
     discretionary = BooleanField('Discretionary')
+    fee_schedule = SelectField('Fee Schedule')
     submit = SubmitField('Save')
 
 
@@ -164,3 +165,8 @@ class FeeRuleForm(FlaskForm):
     rate = FloatField('Rate', validators=[InputRequired()])
     flat = FloatField('Flat Fee', validators=[InputRequired()])
     submit = SubmitField('Save')
+
+
+class AssignFeeScheduleForm(FlaskForm):
+    accounts = SelectMultipleField('Accounts')
+    submit = SubmitField('Assign')
