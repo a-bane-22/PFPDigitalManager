@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Fee Schedule Dashboard</h1>
+    <h2>{{ schedule.name }}</h2>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ url_for('main.add_fee_rule', schedule_id=schedule.id) }}" class="btn btn-primary" role="button">Add Rule</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Rules</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Minimum</th>
+                            <th>Maximum</th>
+                            <th>Rate</th>
+                            <th>Flat Rate</th>
+                            <th>Edit Rule</th>
+                            <th>Delete Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rule in schedule.rules %}
+                        <tr>
+                            <td>{{ rule.minimum }}</td>
+                            <td>{{ rule.maximum }}</td>
+                            <td>{{ rule.rate }}</td>
+                            <td>{{ rule.flat }}</td>
+                            <td><a href="{{ url_for('main.edit_fee_rule', rule_id=rule.id) }}" class="btn btn-primary" role="button">Edit</a></td>
+                            <td><a href="{{ url_for('main.delete_fee_rule', rule_id=rule.id) }}" class="btn btn-danger" role="button">Delete</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Accounts</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Custodian</th>
+                            <th>Client Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for account in accounts %}
+                        <tr>
+                            <td><a href="{{ url_for('main.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                            <td>{{ account.get_custodian_name() }}</td>
+                            <td><a href="{{ url_for('main.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
+                            <td>{{ account.description }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

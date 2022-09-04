@@ -3,11 +3,11 @@ from flask_login import current_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from app import db
 from app.models import (User, Client, Group, Account, AccountSnapshot, Custodian, Security, Position, Transaction,
-                        Quarter)
+                        Quarter, FeeRule, FeeSchedule)
 from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, DeleteUserForm,
                             ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, AccountForm,
                             CustodianForm, AccountSnapshotForm, AddSecurityForm, EditSecurityForm, TransactionForm,
-                            UploadFileForm, AddQuarterForm, EditQuarterForm)
+                            UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm)
 from app.main import bp
 from datetime import date
 import os
@@ -832,3 +832,97 @@ def delete_quarter(quarter_id):
     db.session.delete(quarter)
     db.session.commit()
     return redirect(url_for('main.view_quarters'))
+
+
+@bp.route('/view_fee_schedules')
+@login_required
+def view_fee_schedules():
+    schedules = FeeSchedule.query.all()
+    return render_template('view_fee_schedules.html', title='Fee Schedules', schedules=schedules)
+
+
+@bp.route('/view_fee_schedule/<schedule_id>')
+@login_required
+def view_fee_schedule(schedule_id):
+    schedule = FeeSchedule.query.get(int(schedule_id))
+    return render_template('view_fee_schedule.html', title='Fee Schedule', schedule=schedule)
+
+
+@bp.route('/add_fee_schedule', methods=['GET', 'POST'])
+@login_required
+def add_fee_schedule():
+    form = FeeScheduleForm()
+    if form.validate_on_submit():
+        schedule = FeeSchedule(name=form.name.data)
+        db.session.add(schedule)
+        db.session.commit()
+        return redirect(url_for('main.view_fee_schedule', schedule_id=schedule.id))
+    return render_template('add_fee_schedule.html', title='Add Fee Schedule', form=form)
+
+
+@bp.route('/edit_fee_schedule/<schedule_id>', methods=['GET', 'POST'])
+@login_required
+def edit_fee_schedule(schedule_id):
+    schedule = FeeSchedule.query.get(int(schedule_id))
+    form = FeeScheduleForm()
+    if form.validate_on_submit():
+        schedule.name = form.name.data
+        db.session.add(schedule)
+        db.session.commit()
+        return redirect(url_for('main.view_fee_schedule', schedule_id=schedule.id))
+    form.name.data = schedule.name
+    return render_template('edit_fee_schedule.html', title='Edit Fee Schedule', form=form)
+
+
+@bp.route('/delete_fee_schedule/<schedule_id>')
+@login_required
+def delete_fee_schedule(schedule_id):
+    schedule = FeeSchedule.query.get(int(schedule_id))
+    for rule in schedule.rules:
+        db.session.delete(rule)
+    db.session.delete(schedule)
+    db.session.commit()
+    return redirect(url_for('main.view_fee_schedules'))
+
+
+@bp.route('/add_fee_rule/<schedule_id>', methods=['GET', 'POST'])
+@login_required
+def add_fee_rule(schedule_id):
+    form = FeeRuleForm()
+    if form.validate_on_submit():
+        rule = FeeRule(minimum=form.minimum.data, maximum=form.maximum.data, rate=form.rate.data,
+                       flat=form.flat.data, schedule_id=int(schedule_id))
+        db.session.add(rule)
+        db.session.commit()
+        return redirect(url_for('main.view_fee_schedule', schedule_id=schedule_id))
+    return render_template('add_fee_rule.html', title='Add Fee Rule', form=form)
+
+
+@bp.route('/edit_fee_rule/<rule_id>', methods=['GET', 'POST'])
+@login_required
+def edit_fee_rule(rule_id):
+    rule = FeeRule.query.get(int(rule_id))
+    form = FeeRuleForm()
+    if form.validate_on_submit():
+        rule.minimum = form.minimum.data
+        rule.maximum = form.maximum.data
+        rule.rate = form.rate.data
+        rule.flat = form.flat.data
+        db.session.add(rule)
+        db.session.commit()
+        return redirect(url_for('main.view_fee_schedule', schedule_id=rule.schedule_id))
+    form.minimum.data = rule.minimum
+    form.maximum.data = rule.maximum
+    form.rate.data = rule.rate
+    form.flat.data = rule.flat
+    return render_template('edit_fee_rule.html', title='Edit Fee Rule', form=form)
+
+
+@bp.route('/delete_fee_rule/<rule_id>')
+@login_required
+def delete_fee_rule(rule_id):
+    rule = FeeRule.query.get(int(rule_id))
+    schedule_id = rule.schedule_id
+    db.session.delete(rule)
+    db.session.commit()
+    return redirect(url_for('main.view_fee_schedule', schedule_id=schedule_id))

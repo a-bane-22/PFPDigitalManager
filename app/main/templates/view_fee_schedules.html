@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Fee Schedules</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Delete Schedule</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for schedule in schedules %}
+                <tr>
+                    <td><a href="{{ url_for('main.view_fee_schedule', schedule_id=schedule.id) }}">{{ schedule.name }}</a></td>
+                    <td><a href="{{ url_for('main.delete_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Delete</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
