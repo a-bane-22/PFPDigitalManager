@@ -10,18 +10,10 @@ from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, Delet
                             UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm,
                             AssignFeeScheduleForm)
 from app.main import bp
+from app.main.route_helpers import get_custodian_choices, get_fee_schedule_choices, upload_file
 from datetime import date
 import os
 
-
-def upload_file(file_object):
-    filename = os.path.join('uploads/files/' + secure_filename(file_object.filename))
-    file_object.save(filename)
-    data_file = open(filename, 'r')
-    data_file.readline()
-    lines = data_file.readlines()
-    data_file.close()
-    return lines
 
 
 @bp.route('/')
@@ -272,6 +264,12 @@ def edit_group(group_id):
 def assign_clients(group_id):
     group = Group.query.get(int(group_id))
     form = AssignClientsForm()
+    unassigned_clients = Client.query.filter_by(group_id=None).all()
+    choices = []
+    for client in unassigned_clients:
+        choices.append((client.id, client.get_name()))
+    form.selections.choices = choices
+    form.selections.size = len(choices)
     if form.validate_on_submit():
         assigned_client_ids = form.selections.data
         for client_id in assigned_client_ids:
@@ -285,12 +283,6 @@ def assign_clients(group_id):
                     db.session.add(snapshot)
         db.session.commit()
         return redirect(url_for('main.view_group', group_id=group_id))
-    unassigned_clients = Client.query.filter_by(group_id=None).all()
-    choices = []
-    for client in unassigned_clients:
-        choices.append((client.id, client.get_name()))
-    form.selections.choices = choices
-    form.selections.size = len(choices)
     return render_template('assign_clients.html', title='Assign Clients', group=group, form=form)
 
 
@@ -335,26 +327,6 @@ def view_account(account_id):
                            positions=positions, transactions=transactions, snapshots=snapshots)
 
 
-# PRE:  The Custodian data table must be defined with rows id and name
-# POST: Returns a list of tuples (custodian.id, custodian.name) for each custodian in Custodian
-def get_custodian_choices():
-    custodians = Custodian.query.all()
-    choices = []
-    for custodian in custodians:
-        choices.append((custodian.id, custodian.name))
-    return choices
-
-
-# PRE:  The FeeSchedule data table must be defined with rows id and name
-# POST: Returns a list of tuples (fee_schedule.id, fee_schedule.name) for each fee_schedule in FeeSchedule
-def get_fee_schedule_choices():
-    fee_schedules = FeeSchedule.query.all()
-    choices = [(None, 'Unassigned')]
-    for fee_schedule in fee_schedules:
-        choices.append((fee_schedule.id, fee_schedule.name))
-    return choices
-
-
 @bp.route('/add_account/<client_id>', methods=['GET', 'POST'])
 @login_required
 def add_account(client_id):
@@ -365,10 +337,14 @@ def add_account(client_id):
     form.custodian.choices = custodian_choices
     form.fee_schedule.choices = fee_schedule_choices
     if form.validate_on_submit():
+        if form.fee_schedule.data == 'None':
+            schedule_id = None
+        else:
+            schedule_id = form.fee_schedule.data
         account = Account(account_number=form.account_number.data, description=form.description.data,
                           discretionary=form.discretionary.data, billable=form.billable.data,
                           client_id=int(client_id), custodian_id=form.custodian.data,
-                          schedule_id=form.fee_schedule.data)
+                          schedule_id=schedule_id)
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))
@@ -420,7 +396,11 @@ def edit_account(account_id):
         account.description = form.description.data
         account.billable = form.billable.data
         account.discretionary = form.discretionary.data
-        account.schedule_id = form.fee_schedule.data
+        if form.fee_schedule.data == 'None':
+            schedule_id = None
+        else:
+            schedule_id = form.fee_schedule.data
+        account.schedule_id = schedule_id
         db.session.add(account)
         db.session.commit()
         return redirect(url_for('main.view_account', account_id=account.id))

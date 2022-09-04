@@ -18,9 +18,9 @@
             <p><b>Description: </b>{{ account.description }}</p>
             <p><b>Billable: </b>{{ account.billable }}</p>
             {% if account.assigned_fee_schedule() %}
-            <p><b>Fee Schedule: </b><a href="{{ url_for('main.view_fee_schedule', schedule_id=account.schedule_id) }}">{{ account.get_fee_schedule_name() }}</a></p>
+                <p><b>Fee Schedule: </b><a href="{{ url_for('main.view_fee_schedule', schedule_id=account.schedule_id) }}">{{ account.get_fee_schedule_name() }}</a></p>
             {% else %}
-            <p><b>Fee Schedule: </b>Unassigned</p>
+                <p><b>Fee Schedule: </b>Unassigned</p>
             {% endif %}
             <p><b>Discretionary: </b>{{ account.discretionary }}</p>
         </div>

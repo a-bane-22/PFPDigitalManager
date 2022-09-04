@@ -91,8 +91,11 @@ class Account(db.Model):
     def assigned_fee_schedule(self):
         assigned = False
         if self.schedule_id is not None:
+            print(type(self.schedule_id))
+            print('Assigned == True')
             assigned = True
         return assigned
+
 
 class Custodian(db.Model):
     id = db.Column(db.Integer, primary_key=True)

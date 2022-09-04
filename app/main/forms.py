@@ -168,5 +168,5 @@ class FeeRuleForm(FlaskForm):
 
 
 class AssignFeeScheduleForm(FlaskForm):
-    accounts = SelectMultipleField('Accounts')
+    accounts = SelectMultipleField('Accounts', coerce=int)
     submit = SubmitField('Assign')
