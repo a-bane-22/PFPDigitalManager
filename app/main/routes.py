@@ -10,7 +10,7 @@ from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, Delet
                             UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm,
                             AssignFeeScheduleForm)
 from app.main import bp
-from app.main.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file,
+from app.main.route_helpers import (get_custodian_choices, get_fee_schedule_choices, get_security_choices, upload_file,
                                     create_account_snapshots_from_file)
 from datetime import date
 import os
@@ -620,11 +620,7 @@ def view_transaction(transaction_id):
 def add_transaction(account_id):
     account = Account.query.get(int(account_id))
     form = TransactionForm()
-    securities = Security.query.all()
-    security_choices = []
-    for security in securities:
-        security_choices.append((security.id, security.symbol))
-    form.security.choices = security_choices
+    form.security.choices = get_security_choices()
     type_choices = [('BUY', 'Buy'), ('SELL', 'Sell')]
     form.type.choices = type_choices
     if form.validate_on_submit():

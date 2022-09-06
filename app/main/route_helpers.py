@@ -1,4 +1,4 @@
-from app.models import Custodian, FeeSchedule, Quarter, Group, AccountSnapshot, Account, Client
+from app.models import Custodian, FeeSchedule, Quarter, Group, AccountSnapshot, Account, Security
 from app import db
 from werkzeug.utils import secure_filename
 import os
@@ -9,9 +9,7 @@ from datetime import date
 # POST: Returns a list of tuples (custodian.id, custodian.name) for each custodian in Custodian
 def get_custodian_choices():
     custodians = Custodian.query.all()
-    choices = []
-    for custodian in custodians:
-        choices.append((custodian.id, custodian.name))
+    choices = [(custodian.id, custodian.name) for custodian in custodians]
     return choices
 
 
@@ -19,9 +17,15 @@ def get_custodian_choices():
 # POST: Returns a list of tuples (fee_schedule.id, fee_schedule.name) for each fee_schedule in FeeSchedule
 def get_fee_schedule_choices():
     fee_schedules = FeeSchedule.query.all()
-    choices = [('None', 'Unassigned')]
-    for fee_schedule in fee_schedules:
-        choices.append((fee_schedule.id, fee_schedule.name))
+    choices = [('None', 'Unassigned')] + [(fee_schedule.id, fee_schedule.name) for fee_schedule in fee_schedules]
+    return choices
+
+
+# PRE:  The Security data table must be defined with rows id and name
+# POST: Returns a list of tuples (security.id, security.name) for each security in Security
+def get_security_choices():
+    securities = Security.query.all()
+    choices = [(security.id, security.name) for security in securities]
     return choices
 
 
