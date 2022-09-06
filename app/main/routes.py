@@ -10,10 +10,10 @@ from app.main.forms import (AddUserForm, EditUserForm, ChangePasswordForm, Delet
                             UploadFileForm, AddQuarterForm, EditQuarterForm, FeeRuleForm, FeeScheduleForm,
                             AssignFeeScheduleForm)
 from app.main import bp
-from app.main.route_helpers import get_custodian_choices, get_fee_schedule_choices, upload_file
+from app.main.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file,
+                                    create_account_snapshots_from_file)
 from datetime import date
 import os
-
 
 
 @bp.route('/')
@@ -418,6 +418,7 @@ def delete_account(account_id):
     for snapshot in account.snapshots:
         quarter = Quarter.query.get(snapshot.quarter_id)
         quarter.aum -= snapshot.market_value
+        quarter.fee -= snapshot.fee
         db.session.delete(snapshot)
         db.session.add(quarter)
     db.session.delete(account)
@@ -455,7 +456,9 @@ def add_account_snapshot(account_id):
         client = Client.query.get(account.client_id)
         snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data,
                                    date=date.today(), quarter_id=quarter.id, group_id=client.group_id)
+        snapshot.calculate_fee()
         quarter.aum += snapshot.market_value
+        quarter.fee += snapshot.fee
         db.session.add(snapshot)
         db.session.add(quarter)
         db.session.commit()
@@ -469,6 +472,7 @@ def delete_account_snapshot(snapshot_id):
     snapshot = AccountSnapshot.query.get(int(snapshot_id))
     quarter = Quarter.query.get(snapshot.quarter_id)
     quarter.aum -= snapshot.market_value
+    quarter.fee -= snapshot.fee
     db.session.delete(snapshot)
     db.session.add(quarter)
     db.session.commit()
@@ -482,6 +486,7 @@ def delete_all_account_snapshots():
     quarters = Quarter.query.all()
     for quarter in quarters:
         quarter.aum = 0
+        quarter.fee = 0
         db.session.add(quarter)
     db.session.commit()
     flash('Deleted ' + str(num_deleted) + ' Account Snapshots')
@@ -759,51 +764,10 @@ def add_quarter():
         db.session.add(quarter)
         db.session.commit()
         f = form.account_file.data
-        account_filename = os.path.join('uploads/files/' + secure_filename(f.filename))
-        f.save(account_filename)
-        create_account_snapshots_from_file(quarter_id=quarter.id, filename=account_filename)
+        lines = upload_file(file_object=f)
+        create_account_snapshots_from_file(quarter_id=quarter.id, lines=lines)
         return redirect(url_for('main.view_quarter', quarter_id=quarter.id))
     return render_template('add_quarter.html', title='Add Quarter', form=form)
-
-
-# MOVE TO ROUTE HELPER FILE
-def create_account_snapshots_from_file(quarter_id, filename):
-    quarter = Quarter.query.get(quarter_id)
-    account_file = open(filename, 'r')
-    account_file.readline()
-    lines = account_file.readlines()
-    account_file.close()
-    for line in lines:
-        data = line.split(',')
-        snapshot_date = date.fromisoformat(data[0].strip())
-        account_number = data[1].strip()
-        account_description = data[3].strip()
-        market_value = float(data[4].strip())
-        group_name = data[8].strip()
-        group = Group.query.filter_by(name=group_name).first()
-        if group is None:
-            group = Group(name=group_name)
-            db.session.add(group)
-            group = Group.query.filter_by(name=group_name).first()
-        account = Account.query.filter_by(account_number=account_number).first()
-        if account is None:
-            custodian_name = data[2].strip()
-            custodian = Custodian.query.filter_by(name=custodian_name).first()
-            client_first = data[5].strip()
-            client_middle = data[6].strip()
-            client_last = data[7].strip()
-            client = Client.query.filter_by(first_name=client_first, middle_name=client_middle,
-                                            last_name=client_last).first()
-            account = Account(account_number=account_number, description=account_description, billable=True,
-                              custodian_id=custodian.id, client_id=client.id)
-            db.session.add(account)
-            account = Account.query.filter_by(account_number=account_number).first()
-        snapshot = AccountSnapshot(date=snapshot_date, market_value=market_value,
-                                   account_id=account.id, quarter_id=quarter_id, group_id=group.id)
-        quarter.aum += market_value
-        db.session.add(snapshot)
-    db.session.add(quarter)
-    db.session.commit()
 
 
 @bp.route('/edit_quarter/<quarter_id>', methods=['GET', 'POST'])
@@ -880,7 +844,7 @@ def edit_fee_schedule(schedule_id):
 def assign_fee_schedule(schedule_id):
     schedule = FeeSchedule.query.get(int(schedule_id))
     form = AssignFeeScheduleForm()
-    accounts = Account.query.filter_by(schedule_id=None)
+    accounts = Account.query.filter_by(billable=True, schedule_id=None)
     choices = []
     for account in accounts:
         choices.append((account.id, account.account_number))
