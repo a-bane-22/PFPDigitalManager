@@ -39,24 +39,27 @@
                 {% for group in groups %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th>Market Value</th>
-                                            <th>Fee</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><a href="{{ url_for('main.view_group', group_id=group.id) }}">{{ group.name }}</a></td>
-                                            <td>{{ group.get_market_value(quarter_id=quarter.id) }}</td>
-                                            <td>{{ group.get_fee(quarter_id=quarter.id) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <a href="{{ '#' + group.name }}" data-toggle="collapse">
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Market Value</th>
+                                                <th>Fee</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% with quarter_data = group.get_quarter_data(quarter_id=quarter.id) %}
+                                            <tr>
+                                                <td><a href="{{ url_for('main.view_group', group_id=group.id) }}">{{ group.name }}</a></td>
+                                                <td>{{ quarter_data[0] }}</td>
+                                                <td>{{ quarter_data[1] }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </a>
                         </div>
                         <div id="{{ group.name }}" class="panel-collapse collapse">
                             <table class="table">

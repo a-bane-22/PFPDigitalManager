@@ -36,6 +36,42 @@ class Group(db.Model):
     clients = db.relationship('Client', backref='group', lazy='dynamic')
     account_snapshots = db.relationship('AccountSnapshot', backref='group', lazy='dynamic')
 
+    # PRE:  self is a well-defined Group object
+    #       quarter_id is an integer representing the primary key of a Quarter object
+    # POST: Returns the sum of the market values of each AccountSnapshot object associated
+    #        with this Group and Quarter
+    def get_market_value(self, quarter_id):
+        market_value = 0
+        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
+        for snapshot in snapshots:
+            market_value += snapshot.market_value
+        return market_value
+
+    # PRE:  self is a well-defined Group object
+    #       quarter_id is an integer representing the primary key of a Quarter object
+    # POST: Returns the sum of the fees of each AccountSnapshot object associated with this
+    #        Group and Quarter
+    def get_fee(self, quarter_id):
+        fee = 0
+        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
+        for snapshot in snapshots:
+            fee += snapshot.fee
+        return fee
+
+    # PRE:  self is a well-defined Group object
+    #       quarter_id is an integer representing the primary key of a Quarter object
+    # POST: Returns a tuple containing the sum of the market values and the sum
+    #        of the fees of each AccountSnapshot object associated with this
+    #        Group and Quarter
+    def get_quarter_data(self, quarter_id):
+        market_value = 0
+        fee = 0
+        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
+        for snapshot in snapshots:
+            market_value += snapshot.market_value
+            fee += snapshot.fee
+        return market_value, fee
+
 
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -95,6 +131,11 @@ class Account(db.Model):
             print('Assigned == True')
             assigned = True
         return assigned
+
+    # POST: Returns the AccountSnapshot associated with this object and quarter_id
+    def get_snapshot(self, quarter_id):
+        snapshot = AccountSnapshot.query.filter_by(account_id=self.id, quarter_id=quarter_id).first()
+        return snapshot
 
 
 class Custodian(db.Model):
