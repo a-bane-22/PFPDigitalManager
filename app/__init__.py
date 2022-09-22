@@ -20,12 +20,27 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     login.init_app(app)
     bootstrap.init_app(app)
+
+    from app.account import bp as account_bp
+    app.register_blueprint(account_bp)
     
     from app.authentication import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/authentication')
-    
+
+    from app.billing import bp as billing_bp
+    app.register_blueprint(billing_bp)
+
+    from app.client import bp as client_bp
+    app.register_blueprint(client_bp)
+
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
+
+    from app.transaction import bp as transaction_bp
+    app.register_blueprint(transaction_bp)
+
+    from app.user import bp as user_bp
+    app.register_blueprint(user_bp)
 
     return app
 

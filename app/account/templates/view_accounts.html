@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Accounts</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Custodian</th>
+                    <th>Account Number</th>
+                    <th>Description</th>
+                    <th>Billable</th>
+                    <th>Discretionary</th>
+                    <th>Delete Account</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td><a href="{{ url_for('account.view_custodian', custodian_id=account.custodian_id) }}">{{ account.get_custodian_name() }}</a></td>
+                    <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                    <td>{{ account.description }}</td>
+                    <td>{{ account.billable }}</td>
+                    <td>{{ account.discretionary }}</td>
+                    <td><a href="{{ url_for('account.delete_account', account_id=account.id) }}" class="btn btn-danger" role="button">Delete</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

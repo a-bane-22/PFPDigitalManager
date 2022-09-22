@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Securities</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for security in securities %}
+                <tr>
+                    <td><a href="{{ url_for('transaction.view_security', security_id=security.id) }}">{{ security.symbol }}</a></td>
+                    <td>{{ security.name }}</td>
+                    <td>{{ security.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
