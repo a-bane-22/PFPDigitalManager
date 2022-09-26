@@ -36,6 +36,9 @@ def create_app(config_class=Config):
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
+    from app.task import bp as task_bp
+    app.register_blueprint(task_bp)
+
     from app.transaction import bp as transaction_bp
     app.register_blueprint(transaction_bp)
 

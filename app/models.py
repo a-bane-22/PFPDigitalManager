@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     phone = db.Column(db.String(10), index=True)
     password_hash = db.Column(db.String(128))
+    tasks = db.relationship('Task', backref='user', lazy='dynamic')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -300,3 +301,23 @@ class FeeRule(db.Model):
     rate = db.Column(db.Float)
     flat = db.Column(db.Float)
     schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
+
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(128))
+    description = db.Column(db.String(512))
+    due_date = db.Column(db.Date, index=True)
+    create_date = db.Column(db.Date, index=True)
+    tasks = db.relationship('Task', backref='project', lazy='dynamic')
+
+
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(128))
+    description = db.Column(db.String(512))
+    due_date = db.Column(db.Date, index=True)
+    create_date = db.Column(db.Date, index=True)
+    completed = db.Column(db.Boolean, index=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
