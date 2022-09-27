@@ -33,7 +33,7 @@ def add_security():
         security = Security(symbol=form.symbol.data, name=form.name.data, description=form.description.data)
         db.session.add(security)
         db.session.commit()
-        return redirect(url_for('main.view_security', security_id=security.id))
+        return redirect(url_for('transaction.view_security', security_id=security.id))
     return render_template('add_security.html', title='Add Security', form=form)
 
 
@@ -47,7 +47,7 @@ def edit_security(security_id):
         security.description = form.description.data
         db.session.add(security)
         db.session.commit()
-        return redirect(url_for('main.view_security', security_id=security.id))
+        return redirect(url_for('transaction.view_security', security_id=security.id))
     form.name.data = security.name
     form.description.data = security.description
     return render_template('edit_security.html', title='Edit Security', form=form, security=security)
@@ -112,7 +112,7 @@ def add_transaction(account_id):
         db.session.add(transaction)
         db.session.add(position)
         db.session.commit()
-        return redirect(url_for('main.view_account', account_id=account_id))
+        return redirect(url_for('account.view_account', account_id=account_id))
     return render_template('add_transaction.html', title='Add Transaction', form=form, account=account)
 
 
@@ -120,7 +120,7 @@ def add_transaction(account_id):
 @login_required
 def add_transaction_redirect():
     flash('Choose an account')
-    return redirect(url_for('main.view_accounts'))
+    return redirect(url_for('account.view_accounts'))
 
 
 @bp.route('/edit_transaction/<transaction_id>', methods=['GET', 'POST'])
@@ -140,7 +140,7 @@ def edit_transaction(transaction_id):
         db.session.add(transaction)
         db.session.add(position)
         db.session.commit()
-        return redirect(url_for('main.view_transaction', transaction_id=transaction.id))
+        return redirect(url_for('transaction.view_transaction', transaction_id=transaction.id))
     form.date.data = transaction.date
     form.type.data = transaction.type
     form.quantity.data = transaction.quantity
@@ -169,25 +169,26 @@ def upload_transactions():
             gross_amount = float(data[7].strip())
             description = data[8].strip()
             account = Account.query.filter_by(account_number=account_number).first()
-            security = Security.query.filter_by(symbol=symbol).first()
-            if security is None:
-                security = Security(symbol=symbol, name=name)
-                db.session.add(security)
-                db.session.commit()
-            position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
-            if position is None:
-                position = Position(account_id=account.id, security_id=security.id, quantity=0, cost_basis=0)
+            if account is not None:
+                security = Security.query.filter_by(symbol=symbol).first()
+                if security is None:
+                    security = Security(symbol=symbol, name=name)
+                    db.session.add(security)
+                    db.session.commit()
+                position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
+                if position is None:
+                    position = Position(account_id=account.id, security_id=security.id, quantity=0, cost_basis=0)
+                    db.session.add(position)
+                    db.session.commit()
+                transaction = Transaction(date=transaction_date, type=transaction_type, quantity=quantity,
+                                          share_price=share_price, gross_amount=gross_amount, description=description,
+                                          account_id=account.id, security_id=security.id, position_id=position.id)
+                position.add_transaction(transaction_type=transaction_type, quantity=transaction.quantity,
+                                         gross_amount=transaction.gross_amount)
+                db.session.add(transaction)
                 db.session.add(position)
-                db.session.commit()
-            transaction = Transaction(date=transaction_date, type=transaction_type, quantity=quantity,
-                                      share_price=share_price, gross_amount=gross_amount, description=description,
-                                      account_id=account.id, security_id=security.id, position_id=position.id)
-            position.add_transaction(transaction_type=transaction_type, quantity=transaction.quantity,
-                                     gross_amount=transaction.gross_amount)
-            db.session.add(transaction)
-            db.session.add(position)
         db.session.commit()
-        return redirect(url_for('main.view_transactions'))
+        return redirect(url_for('transaction.view_transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
 
 
@@ -200,4 +201,4 @@ def delete_transaction(transaction_id):
     db.session.delete(transaction)
     db.session.add(position)
     db.session.commit()
-    return redirect(url_for('main.view_transactions'))
+    return redirect(url_for('transaction.view_transactions'))
