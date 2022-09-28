@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Ranked Securities</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ url_for('analysis.rank_securities') }}" class="btn btn-primary" role="button">New Ranking</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <p><b>Explanation:</b> Each security is compared to the benchmark and placed into a quadrant
+                accordingly. The quadrants are assigned as follows:<br>
+                Q0: Security Risk = Benchmark Risk, Security Mean = Benchmark Mean<br>
+                Q1: Security Risk > Benchmark Risk, Security Mean > Benchmark Mean<br>
+                Q2: Security Risk < Benchmark Risk, Security Mean > Benchmark Mean<br>
+                Q3: Security Risk < Benchmark Risk, Security Mean < Benchmark Mean<br>
+                Q4: Security Risk > Benchmark Risk, Security Mean < Benchmark Mean<br>
+                <br>
+                Ratios are calculated as Mean/Risk. A ratio higher than the benchmark ratio has a better
+                return per unit of risk taken. A ratio lower than the benchmark ratio has a lower return
+                per unit risk.
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Benchmark</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Name</th>
+                            <th>Mean</th>
+                            <th>Risk</th>
+                            <th>Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ benchmark[0] }}</td>
+                            <td>{{ benchmark[1] }}</td>
+                            <td>{{ benchmark[2] }}</td>
+                            <td>{{ benchmark[3] }}</td>
+                            <td>{{ benchmark[4] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Name</th>
+                            <th>Mean</th>
+                            <th>Risk</th>
+                            <th>Quadrant</th>
+                            <th>Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for security in security_list %}
+                        <tr>
+                            <td>{{ security[0] }}</td>
+                            <td>{{ security[1] }}</td>
+                            <td>{{ security[2] }}</td>
+                            <td>{{ security[3] }}</td>
+                            <td>{{ security[4] }}</td>
+                            <td>{{ security[5] }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

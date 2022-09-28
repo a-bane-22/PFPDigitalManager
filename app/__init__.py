@@ -23,7 +23,10 @@ def create_app(config_class=Config):
 
     from app.account import bp as account_bp
     app.register_blueprint(account_bp)
-    
+
+    from app.analysis import bp as analysis_bp
+    app.register_blueprint(analysis_bp)
+
     from app.authentication import bp as auth_bp
     app.register_blueprint(auth_bp, url_prefix='/authentication')
 

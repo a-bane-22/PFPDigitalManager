@@ -151,8 +151,23 @@ class Security(db.Model):
     symbol = db.Column(db.String(16), index=True, unique=True)
     name = db.Column(db.String(64))
     description = db.Column(db.String(512))
+    std_dev = db.Column(db.Float)
+    mean = db.Column(db.Float)
+    last_updated = db.Column(db.Date)
+    benchmark_id = db.Column(db.Integer, db.ForeignKey('benchmark.id'))
     positions = db.relationship('Position', backref='security', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
+
+
+class Benchmark(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True, unique=True)
+    name = db.Column(db.String(64))
+    description = db.Column(db.String(512))
+    std_dev = db.Column(db.Float)
+    mean = db.Column(db.Float)
+    last_updated = db.Column(db.Date)
+    securities = db.relationship('Security', backref='benchmark', lazy='dynamic')
 
 
 class Position(db.Model):

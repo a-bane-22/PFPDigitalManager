@@ -39,6 +39,12 @@
                         </ul>
                     </li>
                     <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Analysis<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('analysis.rank_securities') }}">Rank Securities</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Client<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('client.add_client') }}">Add Client</a></li>

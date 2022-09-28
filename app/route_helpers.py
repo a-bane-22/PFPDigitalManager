@@ -35,11 +35,10 @@ def get_security_choices():
 def upload_file(file_object):
     filename = os.path.join('uploads/files/' + secure_filename(file_object.filename))
     file_object.save(filename)
-    data_file = open(filename, 'r')
-    data_file.readline()
-    lines = data_file.readlines()
-    data_file.close()
-    return lines
+    with open(filename, 'r') as data_file:
+        data_file.readline()
+        lines = data_file.readlines()
+        return lines
 
 
 # PRE:  quarter_id is an integer representing a defined Quarter object stored in db
