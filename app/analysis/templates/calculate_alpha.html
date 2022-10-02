@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Calculate Alpha</h1>
+    <p><b>Instructions: </b>Upload a .csv file with the following format:</p>
+    <p>Date | Type | Symbol | Name | Market Price | # Shares | Cost | Benchmark Market Price</p>
+    <div class="row">
+        <div class="col-md-4">
+            {{ wtf.quick_form(form) }}
+        </div>
+    </div>
+{% endblock %}

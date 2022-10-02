@@ -3,6 +3,7 @@ from app import db
 from werkzeug.utils import secure_filename
 import os
 from datetime import date
+import xml.etree.ElementTree as ET
 
 
 # PRE:  The Custodian data table must be defined with rows id and name
@@ -29,7 +30,7 @@ def get_security_choices():
     return choices
 
 
-# PRE:  file_object is
+# PRE:  file_object is a file uploaded via HTML form
 # POST: The file associated with file_object has been saved. The file has been read with the first line
 #        treated as a header. Every subsequent line is treated as data and is read and returned.
 def upload_file(file_object):
@@ -39,6 +40,16 @@ def upload_file(file_object):
         data_file.readline()
         lines = data_file.readlines()
         return lines
+
+
+# PRE:  file_object is a file uploaded via HTML form with format .xml
+# POST: The file associated with file_object has been saved and the data has been parsed into
+#        an ElementTree. The ElementTree is returned.
+def upload_xml_file(file_object):
+    filename = os.path.join('uploads/files/' + secure_filename(file_object.filename))
+    file_object.save(filename)
+    tree = ET.parse(filename)
+    return tree
 
 
 # PRE:  quarter_id is an integer representing a defined Quarter object stored in db

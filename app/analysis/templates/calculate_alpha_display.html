@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ url_for('analysis.calculate_alpha') }}" class="btn btn-primary" role="button">New Calculation</a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <p><b>Final Portfolio Value: </b>{{ portfolio_value }}</p>
+            <p><b>Final Benchmark Portfolio Value: </b>{{ benchmark_portfolio_value }}</p>
+            <p><b>Difference: </b>{{ portfolio_value - benchmark_portfolio_value }}</p>
+            {% if benchmark_portfolio_value != 0 %}
+                <p><b>Percent Difference: </b>{{ (portfolio_value - benchmark_portfolio_value) / benchmark_portfolio_value }}</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
