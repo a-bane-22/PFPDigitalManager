@@ -1,21 +1,13 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import (StringField, SubmitField, DateField, SelectMultipleField, FloatField)
-from wtforms.validators import InputRequired
+from wtforms.validators import InputRequired, ValidationError, Optional
 
 
 class QuarterForm(FlaskForm):
     from_date = DateField('From', validators=[InputRequired()])
     to_date = DateField('To', validators=[InputRequired()])
     name = StringField('Name', validators=[InputRequired()])
-
-
-class AddQuarterForm(QuarterForm):
-    account_file = FileField('Account File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
-    submit = SubmitField('Save')
-
-
-class EditQuarterForm(QuarterForm):
     submit = SubmitField('Save')
 
 
@@ -26,12 +18,27 @@ class FeeScheduleForm(FlaskForm):
 
 class FeeRuleForm(FlaskForm):
     minimum = FloatField('Minimum', validators=[InputRequired()])
-    maximum = FloatField('Maximum', validators=[InputRequired()])
+    maximum = FloatField('Maximum', validators=[Optional()])
     rate = FloatField('Rate', validators=[InputRequired()])
     flat = FloatField('Flat Fee', validators=[InputRequired()])
     submit = SubmitField('Save')
 
+    def validate_minimum(self, minimum):
+        if minimum.data < 0:
+            raise ValidationError('Invalid minimum')
+
 
 class AssignFeeScheduleForm(FlaskForm):
-    accounts = SelectMultipleField('Accounts', coerce=int)
+    groups = SelectMultipleField('Groups', coerce=int)
     submit = SubmitField('Assign')
+
+
+class UploadFileForm(FlaskForm):
+    upload_file = FileField('File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+    submit = SubmitField('Upload')
+
+
+class GenerateFeesByAccountForm(FlaskForm):
+    account_file = FileField('Account File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+    group_file = FileField('Group File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
+    submit = SubmitField('Upload')

@@ -2,10 +2,13 @@ from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 from app import db
 from app.models import (Client, Account, AccountSnapshot, Custodian, Quarter)
-from app.account.forms import (AccountForm, CustodianForm, AccountSnapshotForm, UploadFileForm)
+from app.account.forms import (AccountForm, CustodianForm, AccountSnapshotForm, UploadFileForm,
+                               ExportToFileForm)
 from app.account import bp
 from app.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file)
 from datetime import date
+from werkzeug.utils import secure_filename
+import os
 
 
 @bp.route('/view_accounts')
@@ -42,7 +45,7 @@ def add_account(client_id):
             schedule_id = form.fee_schedule.data
         account = Account(account_number=form.account_number.data, description=form.description.data,
                           discretionary=form.discretionary.data, billable=form.billable.data,
-                          client_id=int(client_id), custodian_id=form.custodian.data,
+                          client_id=client.id, group_id=client.group_id, custodian_id=form.custodian.data,
                           schedule_id=schedule_id)
         db.session.add(account)
         db.session.commit()
@@ -74,11 +77,26 @@ def upload_accounts():
                     db.session.add(custodian)
                     db.session.commit()
                 account = Account(account_number=account_number, description=description, billable=billable,
-                                  discretionary=discretionary, client_id=client.id, custodian_id=custodian.id)
+                                  discretionary=discretionary, client_id=client.id, group_id=client.group_id,
+                                  custodian_id=custodian.id)
                 db.session.add(account)
         db.session.commit()
         return redirect(url_for('account.view_accounts'))
     return render_template('upload_account_file.html', title='Upload Accounts', form=form)
+
+
+@bp.route('/export_accounts', methods=['GET', 'POST'])
+@login_required
+def export_accounts():
+    form = ExportToFileForm()
+    if form.validate_on_submit():
+        filename = os.path.join('exports/' + secure_filename(form.filename.data))
+        with open(filename, 'w') as export_file:
+            accounts = Account.query.all()
+            for account in accounts:
+                export_file.write(account.export_account_csv() + '\n')
+        return redirect(url_for('main.index'))
+    return render_template('export_accounts.html', title='Export Accounts', form=form)
 
 
 @bp.route('/edit_account/<account_id>', methods=['GET', 'POST'])
@@ -123,6 +141,16 @@ def delete_account(account_id):
     db.session.delete(account)
     db.session.commit()
     return redirect(url_for('account.view_accounts'))
+
+
+@bp.route('/delete_all_accounts')
+@login_required
+def delete_all_accounts():
+    accounts = Account.query.all()
+    for account in accounts:
+        db.session.delete(account)
+    db.session.commit()
+    return redirect(url_for('main.index'))
 
 
 @bp.route('/view_account_snapshots')

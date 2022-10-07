@@ -32,8 +32,10 @@
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('account.view_accounts') }}">View Accounts</a></li>
                             <li><a href="{{ url_for('account.upload_accounts') }}">Upload Accounts</a></li>
+                            <li><a href="{{ url_for('account.export_accounts') }}">Export Accounts to CSV</a></li>
+                            <li><a href="{{ url_for('account.delete_all_accounts') }}">Delete All Accounts</a></li>
                             <li><a href="{{ url_for('account.view_account_snapshots') }}">View Account Snapshots</a></li>
-                            <li><a href="{{ url_for('account.delete_all_account_snapshots') }}">DELETE ALL SNAPSHOTS</a></li>
+                            <li><a href="{{ url_for('account.delete_all_account_snapshots') }}">Delete All Snapshots</a></li>
                             <li><a href="{{ url_for('account.add_custodian') }}">Add Custodian</a></li>
                             <li><a href="{{ url_for('account.view_custodians') }}">View Custodians</a></li>
                         </ul>
@@ -42,6 +44,15 @@
                         <a class="dropdown-toggle" data-toggle="dropdown" href="#">Analysis<span class="caret"></span></a>
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('analysis.rank_securities') }}">Rank Securities</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Billing<span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ url_for('billing.add_quarter') }}">Add Quarter</a></li>
+                            <li><a href="{{ url_for('billing.view_quarters') }}">View Quarters</a></li>
+                            <li><a href="{{ url_for('billing.view_fee_schedules') }}">View Fee Schedules</a></li>
+                            <li><a href="{{ url_for('billing.add_fee_schedule') }}">Add Fee Schedule</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">
@@ -73,15 +84,6 @@
                             <li><a href="{{ url_for('transaction.add_security') }}">Add Security</a></li>
                             <li><a href="{{ url_for('transaction.view_securities') }}">View Securities</a></li>
                             <li><a href="{{ url_for('transaction.view_positions') }}">View Positions</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Quarter<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('billing.add_quarter') }}">Add Quarter</a></li>
-                            <li><a href="{{ url_for('billing.view_quarters') }}">View Quarters</a></li>
-                            <li><a href="{{ url_for('billing.view_fee_schedules') }}">View Fee Schedules</a></li>
-                            <li><a href="{{ url_for('billing.add_fee_schedule') }}">Add Fee Schedule</a></li>
                         </ul>
                     </li>
                     <li><a href="{{ url_for('authentication.logout') }}">Logout</a></li>

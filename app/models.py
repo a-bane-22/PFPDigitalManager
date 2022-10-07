@@ -35,43 +35,20 @@ class Group(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
     clients = db.relationship('Client', backref='group', lazy='dynamic')
-    account_snapshots = db.relationship('AccountSnapshot', backref='group', lazy='dynamic')
+    accounts = db.relationship('Account', backref='group', lazy='dynamic')
+    group_snapshots = db.relationship('GroupSnapshot', backref='group', lazy='dynamic')
+    fee_schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
 
     # PRE:  self is a well-defined Group object
-    #       quarter_id is an integer representing the primary key of a Quarter object
-    # POST: Returns the sum of the market values of each AccountSnapshot object associated
-    #        with this Group and Quarter
-    def get_market_value(self, quarter_id):
-        market_value = 0
-        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
-        for snapshot in snapshots:
-            market_value += snapshot.market_value
-        return market_value
+    # POST: RV = FeeSchedule.name for the FeeSchedule object with id = fee_schedule.id
+    def get_fee_schedule_name(self):
+        fee_schedule = FeeSchedule.query.get(self.fee_schedule_id)
+        return fee_schedule.name
 
     # PRE:  self is a well-defined Group object
-    #       quarter_id is an integer representing the primary key of a Quarter object
-    # POST: Returns the sum of the fees of each AccountSnapshot object associated with this
-    #        Group and Quarter
-    def get_fee(self, quarter_id):
-        fee = 0
-        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
-        for snapshot in snapshots:
-            fee += snapshot.fee
-        return fee
-
-    # PRE:  self is a well-defined Group object
-    #       quarter_id is an integer representing the primary key of a Quarter object
-    # POST: Returns a tuple containing the sum of the market values and the sum
-    #        of the fees of each AccountSnapshot object associated with this
-    #        Group and Quarter
-    def get_quarter_data(self, quarter_id):
-        market_value = 0
-        fee = 0
-        snapshots = AccountSnapshot.query.filter_by(group_id=self.id, quarter_id=quarter_id)
-        for snapshot in snapshots:
-            market_value += snapshot.market_value
-            fee += snapshot.fee
-        return market_value, fee
+    # POST: RV = True if self.fee_schedule_id != None
+    def assigned_fee_schedule(self):
+        return self.fee_schedule_id is not None
 
 
 class Client(db.Model):
@@ -106,8 +83,8 @@ class Account(db.Model):
     billable = db.Column(db.Boolean, index=True)
     discretionary = db.Column(db.Boolean, index=True)
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     custodian_id = db.Column(db.Integer, db.ForeignKey('custodian.id'))
-    schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
     snapshots = db.relationship('AccountSnapshot', backref='account', lazy='dynamic')
     positions = db.relationship('Position', backref='account', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='account', lazy='dynamic')
@@ -120,23 +97,25 @@ class Account(db.Model):
         custodian = Custodian.query.get(self.custodian_id)
         return custodian.name
 
-    def get_fee_schedule_name(self):
-        schedule = FeeSchedule.query.get(self.schedule_id)
-        return schedule.name
-
-    # POST: Returns True if schedule_id is not None
-    def assigned_fee_schedule(self):
-        assigned = False
-        if self.schedule_id is not None:
-            print(type(self.schedule_id))
-            print('Assigned == True')
-            assigned = True
-        return assigned
+    def get_group_name(self):
+        group = Group.query.get(self.group_id)
+        return group.name
 
     # POST: Returns the AccountSnapshot associated with this object and quarter_id
     def get_snapshot(self, quarter_id):
         snapshot = AccountSnapshot.query.filter_by(account_id=self.id, quarter_id=quarter_id).first()
         return snapshot
+
+    # PRE:  self is a well-defined Account object
+    # POST: RV = a string containing account number, description, client first name, client last name,
+    #            custodian, billable, and discretionary separated by commas
+    def export_account_csv(self):
+        client = Client.query.get(self.client_id)
+        ret_val = (self.account_number + ',' + self.description + ',' +
+                   client.first_name + ',' + client.last_name + ',' +
+                   self.get_custodian_name() + ',' + str(self.billable) + ',' +
+                   str(self.discretionary))
+        return ret_val
 
 
 class Custodian(db.Model):
@@ -250,6 +229,18 @@ class Quarter(db.Model):
     aum = db.Column(db.Float)
     fee = db.Column(db.Float)
     account_snapshots = db.relationship('AccountSnapshot', backref='quarter', lazy='dynamic')
+    group_snapshots = db.relationship('GroupSnapshot', backref='quarter', lazy='dynamic')
+
+
+class GroupSnapshot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, index=True)
+    market_value = db.Column(db.Float)
+    fee = db.Column(db.Float)
+    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+    quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
+    fee_schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
+    account_snapshots = db.relationship('AccountSnapshot', backref='group_snapshot', lazy='dynamic')
 
 
 class AccountSnapshot(db.Model):
@@ -257,9 +248,11 @@ class AccountSnapshot(db.Model):
     date = db.Column(db.Date, index=True)
     market_value = db.Column(db.Float)
     fee = db.Column(db.Float)
+    group_weight = db.Column(db.Float)
+    billable = db.Column(db.Boolean, index=True)
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
     quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
-    group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
+    group_snapshot_id = db.Column(db.Integer, db.ForeignKey('group_snapshot.id'))
 
     def get_account_number(self):
         account = Account.query.get(self.account_id)
@@ -268,12 +261,6 @@ class AccountSnapshot(db.Model):
     def get_account(self):
         account = Account.query.get(self.account_id)
         return account
-
-    def assigned_group(self):
-        assigned = True
-        if self.group_id is None:
-            assigned = False
-        return assigned
 
     def get_group_name(self):
         group = Group.query.get(self.group_id)
@@ -289,12 +276,15 @@ class AccountSnapshot(db.Model):
             schedule = FeeSchedule.query.get(account.schedule_id)
             fee = schedule.calculate_fee(self.market_value)
             self.fee = fee
+        else:
+            self.fee = 0
 
 
 class FeeSchedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), index=True)
-    accounts = db.relationship('Account', backref='FeeSchedule', lazy='dynamic')
+    groups = db.relationship('Group', backref='FeeSchedule', lazy='dynamic')
+    group_snapshots = db.relationship('GroupSnapshot', backref='fee_schedule', lazy='dynamic')
     rules = db.relationship('FeeRule', backref='FeeSchedule', lazy='dynamic')
 
     def calculate_fee(self, value):
@@ -302,10 +292,13 @@ class FeeSchedule(db.Model):
         for rule in self.rules:
             fee += rule.flat
             if value > rule.minimum:
-                if value < rule.maximum:
-                    fee += (value - rule.minimum) * (rule.rate/4)
+                if rule.maximum is not None:
+                    if value < rule.maximum:
+                        fee += (value - rule.minimum) * (rule.rate/4)
+                    else:
+                        fee += (rule.maximum - rule.minimum) * (rule.rate/4)
                 else:
-                    fee += (rule.maximum - rule.minimum) * (rule.rate/4)
+                    fee += (value - rule.minimum) * (rule.rate/4)
         return fee
 
 

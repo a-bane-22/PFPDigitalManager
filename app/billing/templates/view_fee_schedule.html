@@ -48,19 +48,23 @@
                     <thead>
                         <tr>
                             <th>Account Number</th>
+                            <th>Group Name</th>
                             <th>Custodian</th>
                             <th>Client Name</th>
                             <th>Description</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for account in schedule.accounts %}
-                        <tr>
-                            <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
-                            <td>{{ account.get_custodian_name() }}</td>
-                            <td><a href="{{ url_for('client.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
-                            <td>{{ account.description }}</td>
-                        </tr>
+                    {% for group in schedule.groups %}
+                        {% for account in group.accounts %}
+                            <tr>
+                                <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                                <td><a href="{{ url_for('client.view_group', group_id=group.id) }}">{{ group.name }}</a></td>
+                                <td>{{ account.get_custodian_name() }}</td>
+                                <td><a href="{{ url_for('client.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
+                                <td>{{ account.description }}</td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
                     </tbody>
                 </table>

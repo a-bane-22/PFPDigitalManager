@@ -8,20 +8,62 @@
             <a href="{{ url_for('client.assign_clients', group_id=group.id) }}" class="btn btn-primary" role="button">Assign Clients</a>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for client in clients %}
-                <tr>
-                    <td><a href="{{ url_for('client.view_client', client_id=client.id) }}">{{ client.first_name + ' ' + client.last_name }}</a></td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Fee Schedule</h2>
+            {% if group.assigned_fee_schedule() %}
+                <a href="{{ url_for('billing.view_fee_schedule', schedule_id=group.fee_schedule_id) }}">{{ group.get_fee_schedule_name() }}</a>
+            {% else %}
+                <p>Unassigned</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Clients</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for client in group.clients %}
+                        <tr>
+                            <td><a href="{{ url_for('client.view_client', client_id=client.id) }}">{{ client.get_name() }}</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Accounts</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Account Number</th>
+                            <th>Description</th>
+                            <th>Billable</th>
+                            <th>Discretionary</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for account in group.accounts %}
+                        <tr>
+                            <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                            <td>{{ account.description }}</td>
+                            <td>{{ account.billable }}</td>
+                            <td>{{ account.discretionary }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 {% endblock %}

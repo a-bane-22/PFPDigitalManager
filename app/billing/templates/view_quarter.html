@@ -5,6 +5,10 @@
     <div class="row">
         <div class="col-md-12">
             <a href="{{ url_for('billing.edit_quarter', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Edit Quarter</a>
+            <a href="{{ url_for('billing.upload_account_values', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Upload Account File</a>
+            <a href="{{ url_for('billing.generate_group_snapshots', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Generate Group Snapshots</a>
+            <a href="{{ url_for('billing.calculate_group_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Group Fees</a>
+            <a href="{{ url_for('billing.calculate_account_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Account Fees</a>
         </div>
     </div>
     <div class="row">
@@ -36,10 +40,10 @@
         <div class="col-md-12">
             <h2>Billable Groups</h2>
             <div class="panel-group">
-                {% for group in groups %}
+                {% for group_snapshot in group_snapshots %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <a href="{{ '#' + group.name }}" data-toggle="collapse">
+                            <a href="{{ '#' + group_snapshot.get_name() }}" data-toggle="collapse">
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead>

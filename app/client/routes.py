@@ -117,6 +117,8 @@ def delete_client(client_id):
 def delete_all_clients():
     clients = Client.query.all()
     for client in clients:
+        for account in client.accounts:
+            db.session.delete(account)
         db.session.delete(client)
     db.session.commit()
     return redirect(url_for('main.index'))
@@ -133,8 +135,7 @@ def view_groups():
 @login_required
 def view_group(group_id):
     group = Group.query.get(int(group_id))
-    clients = group.clients
-    return render_template('view_group.html', title='Group Dashboard', group=group, clients=clients)
+    return render_template('view_group.html', title='Group Dashboard', group=group)
 
 
 @bp.route('/add_group/', methods=['GET', 'POST'])

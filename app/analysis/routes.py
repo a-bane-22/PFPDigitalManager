@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for
 from flask_login import current_user, logout_user, login_required
 from app import db
 from app.analysis import bp
-from app.analysis.forms import UploadFileForm
+from app.analysis.forms import UploadFileForm, GenerateFeesByAccountForm
 from app.analysis.route_helpers import sort_ranked_securities
 from app.route_helpers import upload_file, upload_xml_file
 from app.models import Security
@@ -87,4 +87,4 @@ def calculate_alpha():
         return render_template('calculate_alpha_display.html', title='Calculate Alpha',
                                portfolio_value=portfolio_value,
                                benchmark_portfolio_value=benchmark_portfolio_value)
-    return render_template('calculate_alpha.html', title='Calculate Alpha')
+    return render_template('calculate_alpha.html', title='Calculate Alpha', form=form)

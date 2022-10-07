@@ -7,12 +7,18 @@
             <thead>
                 <tr>
                     <th>Name</th>
+                    <th>Fee Schedule</th>
                 </tr>
             </thead>
             <tbody>
             {% for group in groups %}
                 <tr>
                     <td><a href="{{ url_for('client.view_group', group_id=group.id) }}">{{ group.name }}</a></td>
+                    {% if group.assigned_fee_schedule() %}
+                        <td><a href="{{ url_for('billing.view_fee_schedule', schedule_id=group.fee_schedule_id) }}">{{ group.get_fee_schedule_name() }}</a></td>
+                    {% else %}
+                        <td>Unassigned</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             </tbody>

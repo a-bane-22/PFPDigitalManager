@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Generate Fees by Account</h1>
+    <p><b>Instructions: </b>Upload a .csv file with the following format:</p>
+    <p>Account Number | Client Name | Group Name | Account Type | Account Market Value </p>
+    <p>as the account file, and a .csv file with the following format:</p>
+    <p>Group Name | Group Market Value | Group Fee</p>
+    <p>as the group file.</p>
+    <div class="row">
+        <div class="col-md-4">
+            {{ wtf.quick_form(form) }}
+        </div>
+    </div>
+{% endblock %}
