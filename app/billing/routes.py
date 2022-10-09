@@ -1,13 +1,17 @@
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, url_for, flash
 from flask_login import login_required
 from app import db
-from app.models import (Account, Quarter, FeeRule, FeeSchedule, Group, GroupSnapshot, AccountSnapshot)
-from app.billing.forms import (QuarterForm, FeeRuleForm, FeeScheduleForm,
-                               AssignFeeScheduleForm, UploadFileForm, GenerateFeesByAccountForm)
+from app.models import (Account, Client, Quarter, FeeRule, FeeSchedule, Group,
+                        GroupSnapshot, AccountSnapshot)
+from app.billing.forms import (QuarterForm, AccountSnapshotForm, FeeRuleForm, FeeScheduleForm,
+                               AssignFeeScheduleForm, UploadFileForm, ExportToFileForm,
+                               GenerateFeesByAccountForm)
 from app.billing import bp
 from app.billing.route_helpers import (write_tda_group_value, write_tda_fee_by_account)
 from app.route_helpers import upload_file
 from datetime import date
+import os
+from werkzeug.utils import secure_filename
 
 
 @bp.route('/view_quarters')
@@ -71,6 +75,87 @@ def delete_quarter(quarter_id):
     return redirect(url_for('billing.view_quarters'))
 
 
+@bp.route('/view_account_snapshots')
+@login_required
+def view_account_snapshots():
+    snapshots = AccountSnapshot.query.all()
+    return render_template('view_account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
+
+
+@bp.route('/view_account_snapshot/<snapshot_id>')
+@login_required
+def view_account_snapshot(snapshot_id):
+    snapshot = AccountSnapshot.query.get(int(snapshot_id))
+    return render_template('view_account_snapshot.html', title='Account Snapshot', snapshot=snapshot)
+
+
+@bp.route('/create_account_snapshot/<account_id>', methods=['GET', 'POST'])
+@login_required
+def add_account_snapshot(account_id):
+    form = AccountSnapshotForm()
+    quarters = Quarter.query.all()
+    choices = []
+    for quarter in quarters:
+        choices.append((quarter.id, quarter.name))
+    form.quarter.choices = choices
+    if form.validate_on_submit():
+        account = Account.query.get(int(account_id))
+        quarter = Quarter.query.get(form.quarter.data)
+        client = Client.query.get(account.client_id)
+        group = Group.query.get(account.group_id)
+        group_snapshot = GroupSnapshot.query.filter_by(group_id=group.id, quarter_id=quarter.id).first()
+        if group_snapshot is None:
+            group_snapshot = GroupSnapshot(date=date.today(), name=group.name, group_id=group.id,
+                                           quarter_id=quarter.id, market_value=form.market_value.data,
+                                           fee_schedule_id=group.fee_schedule_id)
+            db.session.add(group_snapshot)
+        snapshot = AccountSnapshot(account_number=account.account_number,
+                                   description=account.description,
+                                   billable=account.billable,
+                                   discretionary=account.discretionary,
+                                   client_name=client.get_name(),
+                                   group_name=group.name,
+                                   custodian=account.get_custodian_name(),
+                                   account_id=account.id,
+                                   client_id=client.id,
+                                   market_value=form.market_value.data,
+                                   date=date.today(),
+                                   quarter_name=quarter.name,
+                                   quarter_id=quarter.id,
+                                   group_snapshot_id=group_snapshot.id)
+        db.session.add(snapshot)
+        db.session.commit()
+        return redirect(url_for('billing.view_account_snapshot', snapshot_id=snapshot.id))
+    return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
+
+
+@bp.route('/delete_account_snapshot/<snapshot_id>')
+@login_required
+def delete_account_snapshot(snapshot_id):
+    snapshot = AccountSnapshot.query.get(int(snapshot_id))
+    quarter = Quarter.query.get(snapshot.quarter_id)
+    quarter.aum -= snapshot.market_value
+    quarter.fee -= snapshot.fee
+    db.session.delete(snapshot)
+    db.session.add(quarter)
+    db.session.commit()
+    return redirect(url_for('billing.view_account_snapshots'))
+
+
+@bp.route('/delete_all_account_snapshots')
+@login_required
+def delete_all_account_snapshots():
+    num_deleted = AccountSnapshot.query.delete()
+    quarters = Quarter.query.all()
+    for quarter in quarters:
+        quarter.aum = 0
+        quarter.fee = 0
+        db.session.add(quarter)
+    db.session.commit()
+    flash('Deleted ' + str(num_deleted) + ' Account Snapshots')
+    return redirect(url_for('main.index'))
+
+
 @bp.route('/view_fee_schedules')
 @login_required
 def view_fee_schedules():
@@ -109,6 +194,49 @@ def edit_fee_schedule(schedule_id):
         return redirect(url_for('billing.view_fee_schedule', schedule_id=schedule.id))
     form.name.data = schedule.name
     return render_template('edit_fee_schedule.html', title='Edit Fee Schedule', form=form)
+
+
+@bp.route('/upload_fee_schedules', methods=['GET', 'POST'])
+@login_required
+def upload_fee_schedules():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        f = form.upload_file.data
+        lines = upload_file(file_object=f)
+        for line in lines:
+            data = line.split(',')
+            name = data[0].strip()
+            minimum = float(data[1].strip())
+            maximum = float(data[2].strip())
+            rate = float(data[3].strip())
+            flat = float(data[4].strip())
+            fee_schedule = FeeSchedule.query.filter_by(name=name).first()
+            if fee_schedule is None:
+                fee_schedule = FeeSchedule(name=name)
+                db.session.add(fee_schedule)
+            fee_rule = FeeRule(minimum=minimum, maximum=maximum, rate=rate,
+                               flat=flat, schedule_id=fee_schedule.id)
+            db.session.add(fee_rule)
+        db.session.commit()
+        return redirect(url_for('billing.view_fee_schedules'))
+    return render_template('upload_fee_schedules.html', title='Upload Fee Schedules', form=form)
+
+
+@bp.route('/export_fee_schedules', methods=['GET', 'POST'])
+@login_required
+def export_fee_schedules():
+    form = ExportToFileForm()
+    if form.validate_on_submit():
+        filename = os.path.join('exports/' + secure_filename(form.filename.data))
+        with open(filename, 'w') as export_file:
+            header = 'Schedule Name,Minimum,Maximum,Rate,Flat\n'
+            export_file.write(header)
+            fee_schedules = FeeSchedule.query.all()
+            for schedule in fee_schedules:
+                for rule in schedule.rules:
+                    export_file.write(rule.export_fee_rule_csv() + '\n')
+        return redirect(url_for('main.index'))
+    return render_template('export_fee_schedules.html', title='Export Fee Schedules', form=form)
 
 
 @bp.route('/assign_fee_schedule/<schedule_id>', methods=['GET', 'POST'])

@@ -6,7 +6,7 @@
         <div class="col-md-12">
             <a href="{{ url_for('transaction.add_transaction', account_id=account.id) }}" class="btn btn-primary" role="button">Add Transaction</a>
             <a href="{{ url_for('account.edit_account', account_id=account.id) }}" class="btn btn-primary" role="button">Edit Account</a>
-            <a href="{{ url_for('account.add_account_snapshot', account_id=account.id) }}" class="btn btn-primary" role="button">Add Account Snapshot</a>
+            <a href="{{ url_for('billing.add_account_snapshot', account_id=account.id) }}" class="btn btn-primary" role="button">Add Account Snapshot</a>
         </div>
     </div>
     <div class="row">
@@ -96,14 +96,10 @@
                     <tbody>
                     {% for snapshot in snapshots %}
                         <tr>
-                            <td><a href="{{ url_for('account.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
                             <td>{{ snapshot.market_value }}</td>
-                            <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
-                            {% if snapshot.assigned_group() %}
-                            <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
-                            {% else %}
-                            <td>Unassigned</td>
-                            {% endif %}
+                            <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
+                            <td><a href="{{ url_for('billing.view_group_snapshot', snapshot_id=snapshot.group_snapshot_id) }}">{{ snapshot.group_name }}</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

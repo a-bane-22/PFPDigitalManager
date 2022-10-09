@@ -64,6 +64,7 @@ class Client(db.Model):
     assigned = db.Column(db.Boolean, index=True)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
     accounts = db.relationship('Account', backref='client', lazy='dynamic')
+    account_snapshots = db.relationship('AccountSnapshot', backref='client', lazy='dynamic')
 
     def get_name(self):
         return self.first_name + ' ' + self.last_name
@@ -250,6 +251,7 @@ class Quarter(db.Model):
 class GroupSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
+    name = db.Column(db.String(32), index=True)
     market_value = db.Column(db.Float)
     fee = db.Column(db.Float)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
@@ -257,15 +259,28 @@ class GroupSnapshot(db.Model):
     fee_schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
     account_snapshots = db.relationship('AccountSnapshot', backref='group_snapshot', lazy='dynamic')
 
+    def get_group_name(self):
+        group = Group.query.get(self.group_id)
+        return group.name
+
 
 class AccountSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
+    quarter_name = db.Column(db.String(7), index=True)
+    account_number = db.Column(db.String(32), index=True)
+    description = db.Column(db.String(512))
+    billable = db.Column(db.Boolean, index=True)
+    discretionary = db.Column(db.Boolean, index=True)
+    client_name = db.Column(db.String(), index=True)
+    group_name = db.Column(db.String(), index=True)
+    custodian = db.Column(db.String(), index=True)
     market_value = db.Column(db.Float)
     fee = db.Column(db.Float)
     group_weight = db.Column(db.Float)
     billable = db.Column(db.Boolean, index=True)
     account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
     group_snapshot_id = db.Column(db.Integer, db.ForeignKey('group_snapshot.id'))
 
@@ -297,7 +312,7 @@ class AccountSnapshot(db.Model):
 
 class FeeSchedule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(32), index=True)
+    name = db.Column(db.String(32), index=True, unique=True)
     groups = db.relationship('Group', backref='FeeSchedule', lazy='dynamic')
     group_snapshots = db.relationship('GroupSnapshot', backref='fee_schedule', lazy='dynamic')
     rules = db.relationship('FeeRule', backref='FeeSchedule', lazy='dynamic')
@@ -324,6 +339,12 @@ class FeeRule(db.Model):
     rate = db.Column(db.Float)
     flat = db.Column(db.Float)
     schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
+
+    def export_fee_rule_csv(self):
+        fee_schedule = FeeSchedule.query.get(self.schedule_id)
+        return (fee_schedule.name + ',' + str(self.minimum) + ',' +
+                str(self.maximum) + ',' + str(self.rate) + ',' +
+                str(self.flat))
 
 
 class Project(db.Model):

@@ -14,12 +14,6 @@ class AccountForm(FlaskForm):
     submit = SubmitField('Save')
 
 
-class AccountSnapshotForm(FlaskForm):
-    quarter = SelectField('Quarter', validators=[InputRequired()])
-    market_value = FloatField('Market Value', validators=[InputRequired()])
-    submit = SubmitField('Save')
-
-
 class CustodianForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired()])
     description = StringField('Description')

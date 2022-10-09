@@ -19,15 +19,11 @@
             {% for snapshot in snapshots %}
                 {% with account=snapshot.get_account() %}
                 <tr>
-                    <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
-                    <td><a href="{{ url_for('client.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
-                    {% if snapshot.assigned_group() %}
-                        <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
-                    {% else %}
-                        <td>Unassigned</td>
-                    {% endif %}
+                    <td><a href="{{ url_for('account.view_account', account_id=snapshot.account_id) }}">{{ snapshot.account_number }}</a></td>
+                    <td><a href="{{ url_for('client.view_client', client_id=snapshot.client_id) }}">{{ snapshot.client_name }}</a></td>
+                    <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
                     <td>{{ snapshot.market_value }}</td>
-                    <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
+                    <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
                     <td><a href="{{ url_for('account.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
                     <td><a href="{{ url_for('account.delete_account_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>

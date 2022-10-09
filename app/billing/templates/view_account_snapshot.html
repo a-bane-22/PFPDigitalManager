@@ -8,23 +8,31 @@
                 <table class="table">
                     <tr>
                         <td>Account Number</td>
-                        <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
+                        <td><a href="{{ url_for('account.view_account', account_id=snapshot.account_id) }}">{{ snapshot.account_number }}</a></td>
                     </tr>
                     <tr>
                         <td>Account Description</td>
-                        <td>{{ account.description }}</td>
+                        <td>{{ snapshot.description }}</td>
+                    </tr>
+                    <tr>
+                        <td>Billable</td>
+                        <td>{{ snapshot.billable }}</td>
+                    </tr>
+                    <tr>
+                        <td>Discretionary</td>
+                        <td>{{ snapshot.discretionary }}</td>
+                    </tr>
+                    <tr>
+                        <td>Custodian</td>
+                        <td>{{ snapshot.custodian }}</td>
                     </tr>
                     <tr>
                         <td>Client</td>
-                        <td><a href="{{ url_for('client.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
+                        <td><a href="{{ url_for('client.view_client', client_id=snapshot.client_id) }}">{{ snapshot.client_name }}</a></td>
                     </tr>
                     <tr>
                         <td>Group</td>
-                        {% if snapshot.assigned_group() %}
-                        <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.get_group_name() }}</a></td>
-                        {% else %}
-                        <td>Unassigned</td>
-                        {% endif %}
+                        <td>{{ snapshot.group_name }}</td>
                     </tr>
                     <tr>
                         <td>Market Value</td>
@@ -32,7 +40,7 @@
                     </tr>
                     <tr>
                         <td>Quarter</td>
-                        <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.get_quarter_name() }}</a></td>
+                        <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
                     </tr>
                     <tr>
                         <td>Date</td>

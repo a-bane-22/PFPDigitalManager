@@ -33,10 +33,7 @@
                             <li><a href="{{ url_for('account.view_accounts') }}">View Accounts</a></li>
                             <li><a href="{{ url_for('account.upload_accounts') }}">Upload Accounts</a></li>
                             <li><a href="{{ url_for('account.export_accounts') }}">Export Accounts to CSV</a></li>
-                            <li><a href="{{ url_for('account.delete_all_accounts') }}">Delete All Accounts</a></li>
-                            <li><a href="{{ url_for('account.view_account_snapshots') }}">View Account Snapshots</a></li>
-                            <li><a href="{{ url_for('account.delete_all_account_snapshots') }}">Delete All Snapshots</a></li>
-                            <li><a href="{{ url_for('account.add_custodian') }}">Add Custodian</a></li>
+                            <li><a href="{{ url_for('account.delete_all_accounts') }}">Delete All Accounts</a></li><li><a href="{{ url_for('account.add_custodian') }}">Add Custodian</a></li>
                             <li><a href="{{ url_for('account.view_custodians') }}">View Custodians</a></li>
                         </ul>
                     </li>
@@ -51,8 +48,12 @@
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('billing.add_quarter') }}">Add Quarter</a></li>
                             <li><a href="{{ url_for('billing.view_quarters') }}">View Quarters</a></li>
+                            <li><a href="{{ url_for('billing.view_account_snapshots') }}">View Account Snapshots</a></li>
+                            <li><a href="{{ url_for('billing.delete_all_account_snapshots') }}">Delete All Account Snapshots</a></li>
                             <li><a href="{{ url_for('billing.view_fee_schedules') }}">View Fee Schedules</a></li>
                             <li><a href="{{ url_for('billing.add_fee_schedule') }}">Add Fee Schedule</a></li>
+                            <li><a href="{{ url_for('billing.upload_fee_schedules') }}">Upload Fee Schedules</a></li>
+                            <li><a href="{{ url_for('billing.export_fee_schedules') }}">Export Fee Schedules to CSV</a></li>
                         </ul>
                     </li>
                     <li class="dropdown">

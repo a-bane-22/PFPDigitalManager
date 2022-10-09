@@ -1,12 +1,11 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, redirect, url_for
 from flask_login import login_required
 from app import db
-from app.models import (Client, Account, AccountSnapshot, Custodian, Quarter)
-from app.account.forms import (AccountForm, CustodianForm, AccountSnapshotForm, UploadFileForm,
+from app.models import (Client, Account, Custodian, Quarter)
+from app.account.forms import (AccountForm, CustodianForm, UploadFileForm,
                                ExportToFileForm)
 from app.account import bp
 from app.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file)
-from datetime import date
 from werkzeug.utils import secure_filename
 import os
 
@@ -152,73 +151,6 @@ def delete_all_accounts():
     for account in accounts:
         db.session.delete(account)
     db.session.commit()
-    return redirect(url_for('main.index'))
-
-
-@bp.route('/view_account_snapshots')
-@login_required
-def view_account_snapshots():
-    snapshots = AccountSnapshot.query.all()
-    return render_template('view_account_snapshots.html', title='Account Snapshots', snapshots=snapshots)
-
-
-@bp.route('/view_account_snapshot/<snapshot_id>')
-@login_required
-def view_account_snapshot(snapshot_id):
-    snapshot = AccountSnapshot.query.get(int(snapshot_id))
-    account = Account.query.get(snapshot.account_id)
-    return render_template('view_account_snapshot.html', title='Account Snapshot', snapshot=snapshot, account=account)
-
-
-@bp.route('/create_account_snapshot/<account_id>', methods=['GET', 'POST'])
-@login_required
-def add_account_snapshot(account_id):
-    account = Account.query.get(int(account_id))
-    form = AccountSnapshotForm()
-    quarters = Quarter.query.all()
-    choices = []
-    for quarter in quarters:
-        choices.append((quarter.id, quarter.name))
-    form.quarter.choices = choices
-    if form.validate_on_submit():
-        quarter = Quarter.query.get(form.quarter.data)
-        client = Client.query.get(account.client_id)
-        snapshot = AccountSnapshot(account_id=account.id, market_value=form.market_value.data,
-                                   date=date.today(), quarter_id=quarter.id, group_id=client.group_id)
-        snapshot.calculate_fee()
-        quarter.aum += snapshot.market_value
-        quarter.fee += snapshot.fee
-        db.session.add(snapshot)
-        db.session.add(quarter)
-        db.session.commit()
-        return redirect(url_for('account.view_account_snapshot', snapshot_id=snapshot.id))
-    return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
-
-
-@bp.route('/delete_account_snapshot/<snapshot_id>')
-@login_required
-def delete_account_snapshot(snapshot_id):
-    snapshot = AccountSnapshot.query.get(int(snapshot_id))
-    quarter = Quarter.query.get(snapshot.quarter_id)
-    quarter.aum -= snapshot.market_value
-    quarter.fee -= snapshot.fee
-    db.session.delete(snapshot)
-    db.session.add(quarter)
-    db.session.commit()
-    return redirect(url_for('account.view_account_snapshots'))
-
-
-@bp.route('/delete_all_account_snapshots')
-@login_required
-def delete_all_account_snapshots():
-    num_deleted = AccountSnapshot.query.delete()
-    quarters = Quarter.query.all()
-    for quarter in quarters:
-        quarter.aum = 0
-        quarter.fee = 0
-        db.session.add(quarter)
-    db.session.commit()
-    flash('Deleted ' + str(num_deleted) + ' Account Snapshots')
     return redirect(url_for('main.index'))
 
 

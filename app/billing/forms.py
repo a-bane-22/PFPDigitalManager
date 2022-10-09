@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import (StringField, SubmitField, DateField, SelectMultipleField, FloatField)
+from wtforms import (StringField, SubmitField, DateField, SelectField, SelectMultipleField,
+                     FloatField)
 from wtforms.validators import InputRequired, ValidationError, Optional
 
 
@@ -8,6 +9,12 @@ class QuarterForm(FlaskForm):
     from_date = DateField('From', validators=[InputRequired()])
     to_date = DateField('To', validators=[InputRequired()])
     name = StringField('Name', validators=[InputRequired()])
+    submit = SubmitField('Save')
+
+
+class AccountSnapshotForm(FlaskForm):
+    quarter = SelectField('Quarter', validators=[InputRequired()])
+    market_value = FloatField('Market Value', validators=[InputRequired()])
     submit = SubmitField('Save')
 
 
@@ -36,6 +43,11 @@ class AssignFeeScheduleForm(FlaskForm):
 class UploadFileForm(FlaskForm):
     upload_file = FileField('File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
     submit = SubmitField('Upload')
+
+
+class ExportToFileForm(FlaskForm):
+    filename = StringField('Filename', validators=[InputRequired()])
+    submit = SubmitField('Export')
 
 
 class GenerateFeesByAccountForm(FlaskForm):
