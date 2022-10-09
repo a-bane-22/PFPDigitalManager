@@ -92,6 +92,8 @@ def export_accounts():
     if form.validate_on_submit():
         filename = os.path.join('exports/' + secure_filename(form.filename.data))
         with open(filename, 'w') as export_file:
+            export_file.write('Account Number,Description,Client First Name,Client Last Name,' +
+                              'Custodian,Billable,Discretionary\n')
             accounts = Account.query.all()
             for account in accounts:
                 export_file.write(account.export_account_csv() + '\n')

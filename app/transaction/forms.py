@@ -42,3 +42,8 @@ class TransactionForm(FlaskForm):
 class UploadFileForm(FlaskForm):
     upload_file = FileField('File', validators=[FileRequired(), FileAllowed(['csv'], '.csv only')])
     submit = SubmitField('Upload')
+
+
+class ExportToFileForm(FlaskForm):
+    filename = StringField('Filename', validators=[InputRequired()])
+    submit = SubmitField('Export')

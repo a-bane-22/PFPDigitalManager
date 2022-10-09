@@ -75,6 +75,14 @@ class Client(db.Model):
         group = Group.query.get(self.group_id)
         return group.name
 
+    def export_client_csv(self):
+        group = Group.query.get(self.group_id)
+        return (self.first_name + ',' + self.middle_name + ',' +
+                self.last_name + ',' + str(self.dob) + ',' +
+                self.email + ',' + self.cell_phone + ',' +
+                self.work_phone + ',' + self.home_phone + ',' +
+                group.name)
+
 
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -111,11 +119,10 @@ class Account(db.Model):
     #            custodian, billable, and discretionary separated by commas
     def export_account_csv(self):
         client = Client.query.get(self.client_id)
-        ret_val = (self.account_number + ',' + self.description + ',' +
-                   client.first_name + ',' + client.last_name + ',' +
-                   self.get_custodian_name() + ',' + str(self.billable) + ',' +
-                   str(self.discretionary))
-        return ret_val
+        return (self.account_number + ',' + self.description + ',' +
+                client.first_name + ',' + client.last_name + ',' +
+                self.get_custodian_name() + ',' + str(self.billable) + ',' +
+                str(self.discretionary))
 
 
 class Custodian(db.Model):
@@ -219,6 +226,14 @@ class Transaction(db.Model):
     def get_security_symbol(self):
         security = Security.query.get(self.security_id)
         return security.symbol
+
+    def export_transactions_csv(self):
+        security = Security.query.get(self.security_id)
+        return (str(self.date) + ',' + self.get_account_number() + ',' +
+                self.type + ',' + security.symbol + ',' +
+                security.name + ',' + str(self.quantity) + ',' +
+                str(self.share_price) + ',' + str(self.gross_amount) + ',' +
+                self.description)
 
 
 class Quarter(db.Model):

@@ -2,10 +2,13 @@ from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 from app import db
 from app.models import (Account, Security, Position, Transaction)
-from app.transaction.forms import (AddSecurityForm, EditSecurityForm, TransactionForm, UploadFileForm)
+from app.transaction.forms import (AddSecurityForm, EditSecurityForm, TransactionForm, UploadFileForm,
+                                   ExportToFileForm)
 from app.transaction import bp
 from app.route_helpers import (get_security_choices, upload_file)
 from datetime import date
+import os
+from werkzeug.utils import secure_filename
 
 
 @bp.route('/view_securities')
@@ -190,6 +193,23 @@ def upload_transactions():
         db.session.commit()
         return redirect(url_for('transaction.view_transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
+
+
+@bp.route('/export_transactions', methods=['GET', 'POST'])
+@login_required
+def export_transactions():
+    form = ExportToFileForm()
+    if form.validate_on_submit():
+        filename = os.path.join('exports/' + secure_filename(form.filename.data))
+        with open(filename, 'w') as export_file:
+            header = ('Date,Account Number,Type,Symbol,Name,Quantity,' +
+                      'Share Price,Gross Amount,Description\n')
+            export_file.write(header)
+            transactions = Transaction.query.all()
+            for transaction in transactions:
+                export_file.write(transaction.export_transactions_csv() + '\n')
+        return redirect(url_for('main.index'))
+    return render_template('export_transactions.html', title='Export Transactions', form=form)
 
 
 @bp.route('/delete_transaction/<transaction_id>')

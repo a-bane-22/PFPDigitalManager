@@ -2,10 +2,13 @@ from flask import render_template, redirect, url_for
 from flask_login import login_required
 from app import db
 from app.models import Client, Group
-from app.client.forms import (ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm, UploadFileForm)
+from app.client.forms import (ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm,
+                              UploadFileForm, ExportToFileForm)
 from app.client import bp
 from app.route_helpers import upload_file
 from datetime import date
+import os
+from werkzeug.utils import secure_filename
 
 
 @bp.route('/view_clients')
@@ -72,6 +75,23 @@ def upload_clients():
         db.session.commit()
         return redirect(url_for('client.view_clients'))
     return render_template('upload_client_file.html', title='Upload Clients', form=form)
+
+
+@bp.route('/export_clients', methods=['GET', 'POST'])
+@login_required
+def export_clients():
+    form = ExportToFileForm()
+    if form.validate_on_submit():
+        filename = os.path.join('exports/' + secure_filename(form.filename.data))
+        with open(filename, 'w') as export_file:
+            header = ('First Name,Middle Name,Last Name,DOB,' +
+                      'Email,Cell Phone,Work Phone,Home Phone\n')
+            export_file.write(header)
+            clients = Client.query.all()
+            for client in clients:
+                export_file.write(client.export_client_csv() + '\n')
+        return redirect(url_for('main.index'))
+    return render_template('export_clients.html', title='Export Clients', form=form)
 
 
 @bp.route('/edit_client/<client_id>', methods=['GET', 'POST'])

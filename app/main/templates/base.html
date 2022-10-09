@@ -60,6 +60,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('client.add_client') }}">Add Client</a></li>
                             <li><a href="{{ url_for('client.upload_clients') }}">Upload Clients</a></li>
+                            <li><a href="{{ url_for('client.export_clients') }}">Export Clients to CSV</a></li>
                             <li><a href="{{ url_for('client.view_clients') }}">View Clients</a></li>
                             <li><a href="{{ url_for('client.delete_all_clients') }}">DELETE ALL CLIENTS</a></li>
                             <li><a href="{{ url_for('client.add_group') }}">Add Group</a></li>
@@ -80,6 +81,7 @@
                         <ul class="dropdown-menu">
                             <li><a href="{{ url_for('transaction.add_transaction_redirect') }}">Add Transaction</a></li>
                             <li><a href="{{ url_for('transaction.upload_transactions') }}">Upload Transaction File</a></li>
+                            <li><a href="{{ url_for('transaction.export_transactions') }}">Export Transactions to CSV</a></li>
                             <li><a href="{{ url_for('transaction.view_transactions') }}">View Transactions</a></li>
                             <li><a href="{{ url_for('transaction.add_security') }}">Add Security</a></li>
                             <li><a href="{{ url_for('transaction.view_securities') }}">View Securities</a></li>
