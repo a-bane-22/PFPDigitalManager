@@ -251,7 +251,8 @@ class Quarter(db.Model):
 class GroupSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
-    name = db.Column(db.String(32), index=True)
+    quarter_name = db.Column(db.String(7), index=True)
+    group_name = db.Column(db.String(32), index=True)
     market_value = db.Column(db.Float)
     fee = db.Column(db.Float)
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'))
@@ -259,9 +260,9 @@ class GroupSnapshot(db.Model):
     fee_schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
     account_snapshots = db.relationship('AccountSnapshot', backref='group_snapshot', lazy='dynamic')
 
-    def get_group_name(self):
-        group = Group.query.get(self.group_id)
-        return group.name
+    def get_fee_schedule_name(self):
+        fee_schedule = FeeSchedule.query.get(self.fee_schedule_id)
+        return fee_schedule.name
 
 
 class AccountSnapshot(db.Model):

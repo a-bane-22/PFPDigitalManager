@@ -15,7 +15,7 @@
             {% for schedule in schedules %}
                 <tr>
                     <td><a href="{{ url_for('billing.view_fee_schedule', schedule_id=schedule.id) }}">{{ schedule.name }}</a></td>
-                    <td><a href="{{ url_for('billing.assign_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Assign</a></td>
+                    <td><a href="{{ url_for('billing.assign_fee_schedule_to_groups', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Assign</a></td>
                     <td><a href="{{ url_for('billing.delete_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>
             {% endfor %}

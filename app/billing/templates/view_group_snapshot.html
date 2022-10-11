@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Group Snapshot</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td>Date</td>
+                    <td>{{ snapshot.date }}</td>
+                </tr>
+                <tr>
+                    <td>Group</td>
+                    <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
+                </tr>
+                <tr>
+                    <td>Quarter</td>
+                    <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
+                </tr>
+                <tr>
+                    <td>Market Value</td>
+                    <td>{{ snapshot.market_value }}</td>
+                </tr>
+                <tr>
+                    <td>Fee</td>
+                    <td>{{ snapshot.fee }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Account Snapshots</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date (View Snapshot)</th>
+                            <th>Account Number</th>
+                            <th>Client</th>
+                            <th>Market Value</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for account_snapshot in snapshot.account_snapshots %}
+                        <tr>
+                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=account_snapshot.id) }}">{{ account_snapshot.date }}</a></td>
+                            <td><a href="{{ url_for('account.view_account', account_id=account_snapshot.account_id) }}">{{ account_snapshot.account_number }}</a></td>
+                            <td><a href="{{ url_for('client.view_client', client_id=account_snapshot.client_id) }}">{{ account_snapshot.client_name }}</a></td>
+                            <td>{{ account_snapshot.market_value }}</td>
+                            <td>{{ account_snapshot.fee }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

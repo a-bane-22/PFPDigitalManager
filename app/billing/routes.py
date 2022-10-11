@@ -1,10 +1,10 @@
-from flask import render_template, redirect, url_for, flash
+from flask import render_template, redirect, url_for
 from flask_login import login_required
 from app import db
 from app.models import (Account, Client, Quarter, FeeRule, FeeSchedule, Group,
                         GroupSnapshot, AccountSnapshot)
 from app.billing.forms import (QuarterForm, AccountSnapshotForm, FeeRuleForm, FeeScheduleForm,
-                               AssignFeeScheduleForm, UploadFileForm, ExportToFileForm,
+                               AssignFeeScheduleToGroupForm, AssignFeeScheduleToGroupsForm, UploadFileForm, ExportToFileForm,
                                GenerateFeesByAccountForm)
 from app.billing import bp
 from app.billing.route_helpers import (write_tda_group_value, write_tda_fee_by_account)
@@ -25,10 +25,7 @@ def view_quarters():
 @login_required
 def view_quarter(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
-    group_snapshots = quarter.group_snapshots
-    snapshots = quarter.account_snapshots
-    return render_template('view_quarter.html', title='View Quarter', quarter=quarter,
-                           group_snapshots=group_snapshots)
+    return render_template('view_quarter.html', title='View Quarter', quarter=quarter)
 
 
 @bp.route('/add_quarter', methods=['GET', 'POST'])
@@ -37,7 +34,7 @@ def add_quarter():
     form = QuarterForm()
     if form.validate_on_submit():
         quarter = Quarter(from_date=form.from_date.data, to_date=form.to_date.data, name=form.name.data,
-                          aum=0)
+                          aum=0, fee=0)
         db.session.add(quarter)
         db.session.commit()
         return redirect(url_for('billing.view_quarter', quarter_id=quarter.id))
@@ -105,9 +102,10 @@ def add_account_snapshot(account_id):
         group = Group.query.get(account.group_id)
         group_snapshot = GroupSnapshot.query.filter_by(group_id=group.id, quarter_id=quarter.id).first()
         if group_snapshot is None:
-            group_snapshot = GroupSnapshot(date=date.today(), name=group.name, group_id=group.id,
+            group_snapshot = GroupSnapshot(date=date.today(), group_name=group.name,
+                                           quarter_name=quarter.name, group_id=group.id,
                                            quarter_id=quarter.id, market_value=form.market_value.data,
-                                           fee_schedule_id=group.fee_schedule_id)
+                                           fee=0, fee_schedule_id=group.fee_schedule_id)
             db.session.add(group_snapshot)
         snapshot = AccountSnapshot(account_number=account.account_number,
                                    description=account.description,
@@ -133,11 +131,7 @@ def add_account_snapshot(account_id):
 @login_required
 def delete_account_snapshot(snapshot_id):
     snapshot = AccountSnapshot.query.get(int(snapshot_id))
-    quarter = Quarter.query.get(snapshot.quarter_id)
-    quarter.aum -= snapshot.market_value
-    quarter.fee -= snapshot.fee
     db.session.delete(snapshot)
-    db.session.add(quarter)
     db.session.commit()
     return redirect(url_for('billing.view_account_snapshots'))
 
@@ -152,9 +146,44 @@ def delete_all_account_snapshots():
         quarter.fee = 0
         db.session.add(quarter)
     db.session.commit()
-    flash('Deleted ' + str(num_deleted) + ' Account Snapshots')
     return redirect(url_for('main.index'))
 
+
+@bp.route('/view_group_snapshots')
+@login_required
+def view_group_snapshots():
+    snapshots = GroupSnapshot.query.all()
+    return render_template('view_group_snapshots.html', title='Group Snapshots', snapshots=snapshots)
+
+
+@bp.route('/view_group_snapshot/<snapshot_id>')
+@login_required
+def view_group_snapshot(snapshot_id):
+    snapshot = GroupSnapshot.query.get(int(snapshot_id))
+    return render_template('view_group_snapshot.html', title='Group Snapshot', snapshot=snapshot)
+
+
+@bp.route('/delete_group_snapshot/<snapshot_id>')
+@login_required
+def delete_group_snapshot(snapshot_id):
+    snapshot = GroupSnapshot.query.get(int(snapshot_id))
+    for account_snapshot in snapshot.account_snapshots:
+        account_snapshot.group_snapshot_id = None
+    db.session.delete(snapshot)
+    db.session.commit()
+    return redirect(url_for('billing.view_group_snapshots'))
+
+
+@bp.route('/delete_all_group_snapshots')
+@login_required
+def delete_all_group_snapshots():
+    snapshots = GroupSnapshot.query.all()
+    for snapshot in snapshots:
+        for account_snapshot in snapshot.account_snapshots:
+            account_snapshot.group_snapshot_id = None
+        db.session.delete(snapshot)
+    db.session.commit()
+    return redirect(url_for('main.index'))
 
 @bp.route('/view_fee_schedules')
 @login_required
@@ -239,11 +268,11 @@ def export_fee_schedules():
     return render_template('export_fee_schedules.html', title='Export Fee Schedules', form=form)
 
 
-@bp.route('/assign_fee_schedule/<schedule_id>', methods=['GET', 'POST'])
+@bp.route('/assign_fee_schedule_to_groups/<schedule_id>', methods=['GET', 'POST'])
 @login_required
-def assign_fee_schedule(schedule_id):
+def assign_fee_schedule_to_groups(schedule_id):
     schedule = FeeSchedule.query.get(int(schedule_id))
-    form = AssignFeeScheduleForm()
+    form = AssignFeeScheduleToGroupsForm()
     groups = Group.query.filter_by(fee_schedule_id=None)
     choices = []
     for group in groups:
@@ -258,7 +287,23 @@ def assign_fee_schedule(schedule_id):
             db.session.add(group)
         db.session.commit()
         return redirect(url_for('billing.view_fee_schedule', schedule_id=schedule_id))
-    return render_template('assign_fee_schedule.html', title='Assign Fee Schedule', form=form, schedule=schedule)
+    return render_template('assign_fee_schedule_to_groups.html', title='Assign Fee Schedule', form=form, schedule=schedule)
+
+
+@bp.route('/assign_fee_schedule_to_group/<group_id>', methods=['GET', 'POST'])
+@login_required
+def assign_fee_schedule_to_group(group_id):
+    form = AssignFeeScheduleToGroupForm()
+    schedules = FeeSchedule.query.all()
+    form.fee_schedule.choices = [(schedule.id, schedule.name) for schedule in schedules]
+    form.fee_schedule.size = len(schedules)
+    if form.validate_on_submit():
+        group = Group.query.get(int(group_id))
+        group.fee_schedule_id = form.fee_schedule.data
+        db.session.add(group)
+        db.session.commit()
+        return redirect(url_for('client.view_group', group_id=group_id))
+    return render_template('assign_fee_schedule_to_group.html', title='Assign Fee Schedule', form=form)
 
 
 @bp.route('/delete_fee_schedule/<schedule_id>')
@@ -343,13 +388,18 @@ def upload_account_values(quarter_id):
 @login_required
 def generate_group_snapshots(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
-    for account_snapshot in quarter.account_snapshots:
+    account_snapshots = AccountSnapshot.query.filter_by(quarter_id=quarter.id,
+                                                        group_snapshot_id=None)
+    for account_snapshot in account_snapshots:
         account = Account.query.get(account_snapshot.account_id)
         group = Group.query.get(account.group_id)
         if group is not None:
             group_snapshot = GroupSnapshot.query.filter_by(quarter_id=quarter.id, group_id=group.id).first()
             if group_snapshot is not None:
-                group_snapshot = GroupSnapshot(date=date.today(), market_value=account_snapshot.market_value,
+                group_snapshot = GroupSnapshot(date=date.today(), group_name=group.name,
+                                               quarter_name=quarter.name,
+                                               market_value=account_snapshot.market_value,
+                                               fee=0, fee_schedule_id=group.fee_schedule_id,
                                                group_id=group.id, quarter_id=quarter.id)
             else:
                 group_snapshot.market_value += account_snapshot.market_value

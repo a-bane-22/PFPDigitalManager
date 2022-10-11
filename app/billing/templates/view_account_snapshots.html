@@ -24,8 +24,8 @@
                     <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
                     <td>{{ snapshot.market_value }}</td>
                     <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
-                    <td><a href="{{ url_for('account.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
-                    <td><a href="{{ url_for('account.delete_account_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-danger" role="button">Delete</a></td>
+                    <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                    <td><a href="{{ url_for('billing.delete_account_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>
                 {% endwith %}
             {% endfor %}

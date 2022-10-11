@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-md-12">
             <a href="{{ url_for('billing.add_fee_rule', schedule_id=schedule.id) }}" class="btn btn-primary" role="button">Add Rule</a>
-            <a href="{{ url_for('billing.assign_fee_schedule', schedule_id=schedule.id) }}" class="btn btn-primary" role="button">Assign Schedule</a>
+            <a href="{{ url_for('billing.assign_fee_schedule_to_groups', schedule_id=schedule.id) }}" class="btn btn-primary" role="button">Assign Schedule</a>
         </div>
     </div>
     <div class="row">

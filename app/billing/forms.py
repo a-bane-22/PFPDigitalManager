@@ -35,8 +35,13 @@ class FeeRuleForm(FlaskForm):
             raise ValidationError('Invalid minimum')
 
 
-class AssignFeeScheduleForm(FlaskForm):
+class AssignFeeScheduleToGroupsForm(FlaskForm):
     groups = SelectMultipleField('Groups', coerce=int)
+    submit = SubmitField('Assign')
+
+
+class AssignFeeScheduleToGroupForm(FlaskForm):
+    fee_schedule = SelectField('Fee Schedules', coerce=int)
     submit = SubmitField('Assign')
 
 
