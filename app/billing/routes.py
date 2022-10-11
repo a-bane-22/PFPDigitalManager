@@ -435,3 +435,17 @@ def calculate_account_fees(quarter_id):
                 db.session.add(account_snapshot)
     db.session.commit()
     return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
+
+
+@bp.route('/update_quarter_data/<quarter_id>')
+@login_required
+def update_quarter_data(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    quarter.market_value = 0
+    quarter.fee = 0
+    for group_snapshot in quarter.group_snapshots:
+        quarter.aum += group_snapshot.market_value
+        quarter.fee += group_snapshot.fee
+    db.session.add(quarter)
+    db.session.commit()
+    return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))

@@ -9,6 +9,7 @@
             <a href="{{ url_for('billing.generate_group_snapshots', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Generate Group Snapshots</a>
             <a href="{{ url_for('billing.calculate_group_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Group Fees</a>
             <a href="{{ url_for('billing.calculate_account_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Account Fees</a>
+            <a href="{{ url_for('billing.update_quarter_data', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Update Quarter Values</a>
         </div>
     </div>
     <div class="row">
@@ -31,6 +32,14 @@
                     <tr>
                         <td>AUM</td>
                         <td>{{ quarter.aum }}</td>
+                    </tr>
+                    <tr>
+                        <td>Fee</td>
+                        <td>{{ quarter.fee }}</td>
+                    </tr>
+                    <tr>
+                        <td>Effective Rate</td>
+                        <td>{{ (quarter.fee/quarter.aum)*4 }}</td>
                     </tr>
                 </table>
             </div>

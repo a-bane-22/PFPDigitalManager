@@ -330,7 +330,7 @@ class FeeSchedule(db.Model):
                         fee += (rule.maximum - rule.minimum) * (rule.rate/4)
                 else:
                     fee += (value - rule.minimum) * (rule.rate/4)
-        return fee
+        return round(fee, 2)
 
 
 class FeeRule(db.Model):
