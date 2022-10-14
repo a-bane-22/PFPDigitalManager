@@ -247,10 +247,17 @@ class Quarter(db.Model):
     account_snapshots = db.relationship('AccountSnapshot', backref='quarter', lazy='dynamic')
     group_snapshots = db.relationship('GroupSnapshot', backref='quarter', lazy='dynamic')
 
+    def get_rate(self):
+        rate = 0
+        if self.aum != 0:
+            rate = round((self.fee / self.aum) * 4, 4)
+        return rate
+
 
 class GroupSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
+    name = db.Column(db.String(64), index=True, unique=True)
     quarter_name = db.Column(db.String(7), index=True)
     group_name = db.Column(db.String(32), index=True)
     market_value = db.Column(db.Float)
@@ -264,10 +271,15 @@ class GroupSnapshot(db.Model):
         fee_schedule = FeeSchedule.query.get(self.fee_schedule_id)
         return fee_schedule.name
 
+    def export_to_csv(self):
+        return (self.group_name + ',' + str(self.market_value) + ',' +
+                str(self.fee))
+
 
 class AccountSnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, index=True)
+    name = db.Column(db.String(64), index=True, unique=True)
     quarter_name = db.Column(db.String(7), index=True)
     account_number = db.Column(db.String(32), index=True)
     description = db.Column(db.String(512))
@@ -285,30 +297,20 @@ class AccountSnapshot(db.Model):
     quarter_id = db.Column(db.Integer, db.ForeignKey('quarter.id'))
     group_snapshot_id = db.Column(db.Integer, db.ForeignKey('group_snapshot.id'))
 
-    def get_account_number(self):
-        account = Account.query.get(self.account_id)
-        return account.account_number
-
     def get_account(self):
         account = Account.query.get(self.account_id)
         return account
 
-    def get_group_name(self):
-        group = Group.query.get(self.group_id)
-        return group.name
+    def get_group_snapshot_name(self):
+        snapshot = GroupSnapshot.query.get(self.group_snapshot_id)
+        return snapshot.name
 
-    def get_quarter_name(self):
-        quarter = Quarter.query.get(self.quarter_id)
-        return quarter.name
-
-    def calculate_fee(self):
-        account = Account.query.get(self.account_id)
-        if account.billable and account.schedule_id is not None:
-            schedule = FeeSchedule.query.get(account.schedule_id)
-            fee = schedule.calculate_fee(self.market_value)
-            self.fee = fee
-        else:
-            self.fee = 0
+    def export_to_csv(self):
+        group = GroupSnapshot.query.get(self.group_snapshot_id)
+        return (self.account_number + ',' + self.group_name + ',' +
+                str(group.market_value) + ',' + str(self.market_value) + ',' +
+                str(self.group_weight) + ',' + str(group.fee) + ',' +
+                str(self.fee))
 
 
 class FeeSchedule(db.Model):

@@ -6,10 +6,11 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Date (View Snapshot)</th>
-                    <th>Group Name</th>
+                    <th>Date</th>
+                    <th>Name</th>
                     <th>Market Value</th>
                     <th>Fee</th>
+                    <th>Group</th>
                     <th>Quarter</th>
                     <th>Fee Schedule</th>
                     <th>Delete</th>
@@ -18,10 +19,11 @@
             <tbody>
             {% for snapshot in snapshots %}
                 <tr>
-                    <td><a href="{{ url_for('billing.view_group_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
-                    <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
+                    <td>{{ snapshot.date }}</td>
+                    <td><a href="{{ url_for('billing.view_group_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.name }}</a></td>
                     <td>{{ snapshot.market_value }}</td>
                     <td>{{ snapshot.fee }}</td>
+                    <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
                     <td><a href="{{ url_for('billing.view_quarter', quarter_id=snapshot.quarter_id) }}">{{ snapshot.quarter_name }}</a></td>
                     <td><a href="{{ url_for('billing.view_fee_schedule', schedule_id=snapshot.fee_schedule_id) }}">{{ snapshot.get_fee_schedule_name() }}</a></td>
                     <td><a href="{{ url_for('billing.delete_group_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-danger" role="button">Delete</a></td>

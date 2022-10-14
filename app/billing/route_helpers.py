@@ -1,4 +1,4 @@
-from app.models import Quarter, Group, Account, AccountSnapshot
+from app.models import Quarter, FeeSchedule
 from app import db
 from datetime import date
 
@@ -44,3 +44,24 @@ def write_tda_fee_by_account(accounts):
                                                                  account['group_fee'],
                                                                  account['account_fee'])
             account_file.write(account_line)
+
+
+def generate_group_fees(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    for group_snapshot in quarter.group_snapshots:
+        fee_schedule = FeeSchedule.query.get(group_snapshot.fee_schedule_id)
+        group_snapshot.fee = fee_schedule.calculate_fee(value=group_snapshot.market_value)
+        db.session.add(group_snapshot)
+    db.session.commit()
+
+
+def generate_account_fees(quarter_id):
+    quarter = Quarter.query.get(int(quarter_id))
+    for group_snapshot in quarter.group_snapshots:
+        group_market_value = group_snapshot.market_value
+        for account_snapshot in group_snapshot.account_snapshots:
+            if account_snapshot.billable:
+                account_snapshot.group_weight = round(account_snapshot.market_value/group_market_value, 4)
+                account_snapshot.fee = round(group_snapshot.fee * account_snapshot.group_weight, 2)
+                db.session.add(account_snapshot)
+    db.session.commit()

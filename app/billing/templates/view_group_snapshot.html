@@ -10,6 +10,10 @@
                     <td>{{ snapshot.date }}</td>
                 </tr>
                 <tr>
+                    <td>Name</td>
+                    <td>{{ snapshot.name }}</td>
+                </tr>
+                <tr>
                     <td>Group</td>
                     <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
                 </tr>
@@ -35,7 +39,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Date (View Snapshot)</th>
+                            <th>Date</th>
+                            <th>Name</th>
                             <th>Account Number</th>
                             <th>Client</th>
                             <th>Market Value</th>
@@ -45,7 +50,8 @@
                     <tbody>
                     {% for account_snapshot in snapshot.account_snapshots %}
                         <tr>
-                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=account_snapshot.id) }}">{{ account_snapshot.date }}</a></td>
+                            <td>{{ account_snapshot.date }}</td>
+                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=account_snapshot.id) }}">{{ account_snapshot.name }}</a></td>
                             <td><a href="{{ url_for('account.view_account', account_id=account_snapshot.account_id) }}">{{ account_snapshot.account_number }}</a></td>
                             <td><a href="{{ url_for('client.view_client', client_id=account_snapshot.client_id) }}">{{ account_snapshot.client_name }}</a></td>
                             <td>{{ account_snapshot.market_value }}</td>

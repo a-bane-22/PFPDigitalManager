@@ -9,6 +9,8 @@
                     <th>Custodian</th>
                     <th>Account Number</th>
                     <th>Description</th>
+                    <th>Client</th>
+                    <th>Group</th>
                     <th>Billable</th>
                     <th>Discretionary</th>
                     <th>Delete Account</th>
@@ -20,6 +22,8 @@
                     <td><a href="{{ url_for('account.view_custodian', custodian_id=account.custodian_id) }}">{{ account.get_custodian_name() }}</a></td>
                     <td><a href="{{ url_for('account.view_account', account_id=account.id) }}">{{ account.account_number }}</a></td>
                     <td>{{ account.description }}</td>
+                    <td><a href="{{ url_for('client.view_client', client_id=account.client_id) }}">{{ account.get_client_name() }}</a></td>
+                    <td><a href="{{ url_for('client.view_group', group_id=account.group_id) }}">{{ account.get_group_name() }}</a></td>
                     <td>{{ account.billable }}</td>
                     <td>{{ account.discretionary }}</td>
                     <td><a href="{{ url_for('account.delete_account', account_id=account.id) }}" class="btn btn-danger" role="button">Delete</a></td>

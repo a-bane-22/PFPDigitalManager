@@ -7,7 +7,7 @@ from app.billing.forms import (QuarterForm, AccountSnapshotForm, FeeRuleForm, Fe
                                AssignFeeScheduleToGroupForm, AssignFeeScheduleToGroupsForm, UploadFileForm, ExportToFileForm,
                                GenerateFeesByAccountForm)
 from app.billing import bp
-from app.billing.route_helpers import (write_tda_group_value, write_tda_fee_by_account)
+from app.billing.route_helpers import (generate_group_fees, generate_account_fees)
 from app.route_helpers import upload_file
 from datetime import date
 import os
@@ -102,12 +102,18 @@ def add_account_snapshot(account_id):
         group = Group.query.get(account.group_id)
         group_snapshot = GroupSnapshot.query.filter_by(group_id=group.id, quarter_id=quarter.id).first()
         if group_snapshot is None:
-            group_snapshot = GroupSnapshot(date=date.today(), group_name=group.name,
+            name = '{group_name} - {quarter_name}'.format(group_name=group.name, quarter_name=quarter.name)
+            group_snapshot = GroupSnapshot(date=date.today(), name=name, group_name=group.name,
                                            quarter_name=quarter.name, group_id=group.id,
                                            quarter_id=quarter.id, market_value=form.market_value.data,
                                            fee=0, fee_schedule_id=group.fee_schedule_id)
-            db.session.add(group_snapshot)
-        snapshot = AccountSnapshot(account_number=account.account_number,
+        else:
+            group_snapshot.market_value += form.market_value.data
+        db.session.add(group_snapshot)
+        name = '{account_number} - {quarter_name}'.format(account_number=account.account_number,
+                                                          quarter_name=quarter.name)
+        snapshot = AccountSnapshot(name=name,
+                                   account_number=account.account_number,
                                    description=account.description,
                                    billable=account.billable,
                                    discretionary=account.discretionary,
@@ -127,6 +133,61 @@ def add_account_snapshot(account_id):
     return render_template('add_account_snapshot.html', title='Add Account Snapshot', form=form)
 
 
+@bp.route('/upload_account_values/<quarter_id>', methods=['GET', 'POST'])
+@login_required
+def upload_account_values(quarter_id):
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        quarter = Quarter.query.get(int(quarter_id))
+        f = form.upload_file.data
+        lines = upload_file(file_object=f)
+        for line in lines:
+            data = line.split(',')
+            snapshot_date = date.fromisoformat(data[0].strip())
+            account_number = data[1].strip()
+            market_value = float(data[4].strip())
+            name = '{account_number} - {quarter_name}'.format(account_number=account_number,
+                                                              quarter_name=quarter.name)
+            account = Account.query.filter_by(account_number=account_number).first()
+            if account is not None:
+                client = Client.query.get(account.client_id)
+                group = Group.query.get(account.group_id)
+                group_snapshot = GroupSnapshot.query.filter_by(group_id=group.id, quarter_id=quarter.id).first()
+                if group_snapshot is None:
+                    name = '{group_name} - {quarter_name}'.format(group_name=group.name, quarter_name=quarter.name)
+                    group_snapshot = GroupSnapshot(date=date.today(), name=name, group_name=group.name,
+                                                   quarter_name=quarter.name, group_id=group.id,
+                                                   quarter_id=quarter.id, market_value=market_value,
+                                                   fee=0, fee_schedule_id=group.fee_schedule_id)
+                else:
+                    group_snapshot.market_value += market_value
+                db.session.add(group_snapshot)
+                snapshot = AccountSnapshot(name=name,
+                                           account_number=account.account_number,
+                                           description=account.description,
+                                           billable=account.billable,
+                                           discretionary=account.discretionary,
+                                           client_name=client.get_name(),
+                                           group_name=group.name,
+                                           custodian=account.get_custodian_name(),
+                                           account_id=account.id,
+                                           client_id=client.id,
+                                           market_value=market_value,
+                                           date=snapshot_date,
+                                           quarter_name=quarter.name,
+                                           quarter_id=quarter.id,
+                                           group_snapshot_id=group_snapshot.id)
+                db.session.add(snapshot)
+            else:
+                snapshot = AccountSnapshot(name=name,
+                                           account_number=account_number,
+                                           date=snapshot_date,
+                                           market_value=market_value)
+                db.session.add(snapshot)
+        return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
+    return render_template('upload_account_values.html', title='Upload Account Values', form=form)
+
+
 @bp.route('/delete_account_snapshot/<snapshot_id>')
 @login_required
 def delete_account_snapshot(snapshot_id):
@@ -139,7 +200,7 @@ def delete_account_snapshot(snapshot_id):
 @bp.route('/delete_all_account_snapshots')
 @login_required
 def delete_all_account_snapshots():
-    num_deleted = AccountSnapshot.query.delete()
+    AccountSnapshot.query.delete()
     quarters = Quarter.query.all()
     for quarter in quarters:
         quarter.aum = 0
@@ -360,30 +421,6 @@ def delete_fee_rule(rule_id):
     return redirect(url_for('billing.view_fee_schedule', schedule_id=schedule_id))
 
 
-@bp.route('/upload_account_values/<quarter_id>', methods=['GET', 'POST'])
-@login_required
-def upload_account_values(quarter_id):
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        f = form.upload_file.data
-        lines = upload_file(file_object=f)
-        for line in lines:
-            data = line.split(',')
-            snapshot_date = date.fromisoformat(data[0].strip())
-            account_number = data[1].strip()
-            market_value = float(data[4].strip())
-            account_id = None
-            account = Account.query.filter_by(account_number=account_number).first()
-            if account is not None:
-                account_id = account.id
-            snapshot = AccountSnapshot(date=snapshot_date, market_value=market_value,
-                                       billable=account.billable,
-                                       account_id=account_id, quarter_id=quarter_id)
-            db.session.add(snapshot)
-        return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
-    return render_template('upload_account_values.html', title='Upload Account Values', form=form)
-
-
 @bp.route('/generate_group_snapshots/<quarter_id>')
 @login_required
 def generate_group_snapshots(quarter_id):
@@ -396,7 +433,9 @@ def generate_group_snapshots(quarter_id):
         if group is not None:
             group_snapshot = GroupSnapshot.query.filter_by(quarter_id=quarter.id, group_id=group.id).first()
             if group_snapshot is not None:
-                group_snapshot = GroupSnapshot(date=date.today(), group_name=group.name,
+                name = '{group_name} - {quarter_name}'.format(group_name=group.name, quarter_name=quarter.name)
+                group_snapshot = GroupSnapshot(date=date.today(), name=name,
+                                               group_name=group.name,
                                                quarter_name=quarter.name,
                                                market_value=account_snapshot.market_value,
                                                fee=0, fee_schedule_id=group.fee_schedule_id,
@@ -410,30 +449,11 @@ def generate_group_snapshots(quarter_id):
     return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
 
 
-@bp.route('/calculate_group_fees/<quarter_id>')
+@bp.route('/calculate_fees/<quarter_id>')
 @login_required
-def calculate_group_fees(quarter_id):
-    quarter = Quarter.query.get(int(quarter_id))
-    for group_snapshot in quarter.group_snapshots:
-        fee_schedule = FeeSchedule.query.get(group_snapshot.fee_schedule_id)
-        group_snapshot.fee = fee_schedule.calculate_fee(value=group_snapshot.market_value)
-        db.session.add(group_snapshot)
-    db.session.commit()
-    return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
-
-
-@bp.route('/calculate_account_fees/<quarter_id>')
-@login_required
-def calculate_account_fees(quarter_id):
-    quarter = Quarter.query.get(int(quarter_id))
-    for group_snapshot in quarter.group_snapshots:
-        group_market_value = group_snapshot.market_value
-        for account_snapshot in group_snapshot.account_snapshots:
-            if account_snapshot.billable:
-                account_snapshot.group_weight = round(account_snapshot.market_value/group_market_value)
-                account_snapshot.fee = group_snapshot.fee * account_snapshot.group_weight
-                db.session.add(account_snapshot)
-    db.session.commit()
+def calculate_fees(quarter_id):
+    generate_group_fees(quarter_id=quarter_id)
+    generate_account_fees(quarter_id=quarter_id)
     return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
 
 
@@ -441,11 +461,33 @@ def calculate_account_fees(quarter_id):
 @login_required
 def update_quarter_data(quarter_id):
     quarter = Quarter.query.get(int(quarter_id))
-    quarter.market_value = 0
+    quarter.aum = 0
     quarter.fee = 0
     for group_snapshot in quarter.group_snapshots:
         quarter.aum += group_snapshot.market_value
         quarter.fee += group_snapshot.fee
     db.session.add(quarter)
     db.session.commit()
+    return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))
+
+
+@bp.route('/export_quarter_csv/<quarter_id>')
+@login_required
+def export_quarter_csv(quarter_id):
+    group_filename = 'groups'
+    account_filename = 'accounts'
+    with open(group_filename, 'w') as group_file:
+        header = 'Group,Market Value,Fee\n'
+        group_file.write(header)
+        group_snapshots = GroupSnapshot.query.filter_by(quarter_id=quarter_id).all()
+        for snapshot in group_snapshots:
+            group_file.write(snapshot.export_to_csv() + '\n')
+    with open(account_filename, 'w') as account_file:
+        header = ('Account Number,Group Name,Group Market Value,' +
+                  'Account Market Value,Account Weight,Group Fee,' +
+                  'Account Fee\n')
+        account_file.write(header)
+        account_snapshots = AccountSnapshot.query.filter_by(quarter_id=quarter_id).all()
+        for snapshot in account_snapshots:
+            account_file.write(snapshot.export_to_csv() + '\n')
     return redirect(url_for('billing.view_quarter', quarter_id=quarter_id))

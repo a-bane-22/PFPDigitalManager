@@ -7,9 +7,9 @@
             <a href="{{ url_for('billing.edit_quarter', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Edit Quarter</a>
             <a href="{{ url_for('billing.upload_account_values', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Upload Account File</a>
             <a href="{{ url_for('billing.generate_group_snapshots', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Generate Group Snapshots</a>
-            <a href="{{ url_for('billing.calculate_group_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Group Fees</a>
-            <a href="{{ url_for('billing.calculate_account_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Account Fees</a>
+            <a href="{{ url_for('billing.calculate_fees', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Calculate Fees</a>
             <a href="{{ url_for('billing.update_quarter_data', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Update Quarter Values</a>
+            <a href="{{ url_for('billing.export_quarter_csv', quarter_id=quarter.id) }}" class="btn btn-primary" role="button">Export to CSV</a>
         </div>
     </div>
     <div class="row">
@@ -39,7 +39,7 @@
                     </tr>
                     <tr>
                         <td>Effective Rate</td>
-                        <td>{{ (quarter.fee/quarter.aum)*4 }}</td>
+                        <td>{{ quarter.get_rate() }}</td>
                     </tr>
                 </table>
             </div>
@@ -52,11 +52,12 @@
                 {% for group_snapshot in quarter.group_snapshots %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <a href="{{ '#' + group_snapshot.group_name }}" data-toggle="collapse">
+                            <a href="{{ '#' + group_snapshot.name }}" data-toggle="collapse">
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead>
                                             <tr>
+                                                <th>Name</th>
                                                 <th>Group</th>
                                                 <th>Market Value</th>
                                                 <th>Fee</th>
@@ -64,6 +65,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
+                                                <td><a href="{{ url_for('billing.view_group_snapshot', snapshot_id=group_snapshot.id) }}">{{ group_snapshot.name }}</a></td>
                                                 <td><a href="{{ url_for('client.view_group', group_id=group_snapshot.group_id) }}">{{ group_snapshot.group_name }}</a></td>
                                                 <td>{{ group_snapshot.market_value }}</td>
                                                 <td>{{ group_snapshot.fee }}</td>
@@ -73,10 +75,11 @@
                                 </div>
                             </a>
                         </div>
-                        <div id="{{ group_snapshot.group_name }}" class="panel-collapse collapse">
+                        <div id="{{ group_snapshot.name }}" class="panel-collapse collapse">
                             <table class="table">
                                 <thead>
                                     <tr>
+                                        <th>Name</th>
                                         <th>Account Number</th>
                                         <th>Description</th>
                                         <th>Market Value</th>
@@ -86,6 +89,7 @@
                                 <tbody>
                                     {% for account_snapshot in group_snapshot.account_snapshots %}
                                         <tr>
+                                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=account_snapshot.id) }}">{{ account_snapshot.name }}</a></td>
                                             <td><a href="{{ url_for('account.view_account', account_id=account_snapshot.account_id) }}">{{ account_snapshot.account_number }}</a></td>
                                             <td>{{ account_snapshot.description }}</td>
                                             <td>{{ account_snapshot.market_value }}</td>
@@ -107,7 +111,8 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Date (View Snapshot)</th>
+                            <th>Date</th>
+                            <th>Name</th>
                             <th>Account Number</th>
                             <th>Client</th>
                             <th>Group</th>
@@ -118,7 +123,8 @@
                     <tbody>
                     {% for snapshot in quarter.account_snapshots %}
                         <tr>
-                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.date }}</a></td>
+                            <td>{{ snapshot.date }}</td>
+                            <td><a href="{{ url_for('billing.view_account_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.name }}</a></td>
                             <td><a href="{{ url_for('account.view_account', account_id=snapshot.account_id) }}">{{ snapshot.account_number }}</a></td>
                             <td><a href="{{ url_for('client.view_client', client_id=snapshot.client_id) }}">{{ snapshot.client_name }}</a></td>
                             <td><a href="{{ url_for('client.view_group', group_id=snapshot.group_id) }}">{{ snapshot.group_name }}</a></td>
