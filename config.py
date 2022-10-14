@@ -11,3 +11,5 @@ class Config(object):
 
     UPLOADS_DEFAULT_DEST = '/uploads'
     UPLOADED_FILES_DEST = '/uploads/files'
+
+    ALPHAVANTAGE_API_KEY = os.environ.get('ALPHAVANTAGE_API_KEY')

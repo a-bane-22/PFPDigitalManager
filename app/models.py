@@ -267,6 +267,9 @@ class GroupSnapshot(db.Model):
     fee_schedule_id = db.Column(db.Integer, db.ForeignKey('fee_schedule.id'))
     account_snapshots = db.relationship('AccountSnapshot', backref='group_snapshot', lazy='dynamic')
 
+    def get_string_id(self):
+        return str(self.id)
+
     def get_fee_schedule_name(self):
         fee_schedule = FeeSchedule.query.get(self.fee_schedule_id)
         return fee_schedule.name
