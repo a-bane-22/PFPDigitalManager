@@ -140,10 +140,28 @@ class Security(db.Model):
     description = db.Column(db.String(512))
     std_dev = db.Column(db.Float)
     mean = db.Column(db.Float)
-    last_updated = db.Column(db.Date)
+    last_snapshot = db.Column(db.Date)
     benchmark_id = db.Column(db.Integer, db.ForeignKey('benchmark.id'))
+    snapshots = db.relationship('SecuritySnapshot', backref='security', lazy='dynamic')
     positions = db.relationship('Position', backref='security', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
+
+
+class SecuritySnapshot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True)
+    data_date = db.Column(db.Date)
+    open_value = db.Column(db.Float)
+    close_value = db.Column(db.Float)
+    high_value = db.Column(db.Float)
+    low_value = db.Column(db.Float)
+    volume = db.Column(db.Integer)
+    hundred_day_average_open = db.Column(db.Float)
+    hundred_day_average_close = db.Column(db.Float)
+    hundred_day_average_high = db.Column(db.Float)
+    hundred_day_average_low = db.Column(db.Float)
+    hundred_day_average_volume = db.Column(db.Integer)
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 
 
 class Benchmark(db.Model):

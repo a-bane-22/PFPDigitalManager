@@ -6,6 +6,7 @@ from app.analysis.forms import UploadFileForm, GenerateFeesByAccountForm
 from app.analysis.route_helpers import sort_ranked_securities
 from app.route_helpers import upload_file, upload_xml_file
 from app.models import Security
+from alpha_vantage.timeseries import TimeSeries
 
 
 @bp.route('/rank_securities', methods=['GET', 'POST'])

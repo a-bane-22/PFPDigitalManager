@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Security Snapshot</h1>
+    <h2><a href="{{ url_for('transaction.view_security', security_id=snapshot.security_id) }}">{{ snapshot.symbol }}</a> - {{ snapshot.data_date }}</h2>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Value</th>
+                            <th>Hundred Day Average</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Open</td>
+                            <td>{{ snapshot.open_value }}</td>
+                            <td>{{ snapshot.hundred_day_average_open }}</td>
+                        </tr>
+                        <tr>
+                            <td>Close</td>
+                            <td>{{ snapshot.close_value }}</td>
+                            <td>{{ snapshot.hundred_day_average_close }}</td>
+                        </tr>
+                        <tr>
+                            <td>High</td>
+                            <td>{{ snapshot.high_value }}</td>
+                            <td>{{ snapshot.hundred_day_average_high }}</td>
+                        </tr>
+                        <tr>
+                            <td>Low</td>
+                            <td>{{ snapshot.low_value }}</td>
+                            <td>{{ snapshot.hundred_day_average_low }}</td>
+                        </tr>
+                        <tr>
+                            <td>Volume</td>
+                            <td>{{ snapshot.volume }}</td>
+                            <td>{{ snapshot.hundred_day_average_volume }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

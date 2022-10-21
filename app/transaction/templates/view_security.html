@@ -5,14 +5,34 @@
     <div class="row">
         <div class="col-md-4">
             <a href="{{ url_for('transaction.edit_security', security_id=security.id) }}" class="btn btn-primary" role="button">Edit Security</a>
+            <a href="{{ url_for('transaction.update_security_data', security_id=security.id) }}" class="btn btn-primary" role="button">Update Security Data</a>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
             <h2>Security Information</h2>
-            <p><b>Symbol: </b>{{ security.symbol }}</p>
-            <p><b>Name: </b>{{ security.name }}</p>
-            <p><b>Description: </b>{{ security.description }}</p>
+            <div class="table-responsive">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>Symbol</td>
+                            <td>{{ security.symbol }}</td>
+                        </tr>
+                        <tr>
+                            <td>Name</td>
+                            <td>{{ security.name }}</td>
+                        </tr>
+                        <tr>
+                            <td>Description</td>
+                            <td>{{ security.description }}</td>
+                        </tr>
+                        <tr>
+                            <td>Last Updated</td>
+                            <td>{{ security.last_snapshot }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     <div class="row">
@@ -68,6 +88,39 @@
                             <td>{{ transaction.share_price }}</td>
                             <td>{{ transaction.gross_amount }}</td>
                             <td>{{ transaction.description }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Security Snapshots</h2>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Open</th>
+                            <th>Close</th>
+                            <th>Low</th>
+                            <th>High</th>
+                            <th>Volume</th>
+                            <th>Delete Snapshot</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for snapshot in security.snapshots %}
+                        <tr>
+                            <td><a href="{{ url_for('transaction.view_security_snapshot', snapshot_id=snapshot.id) }}">{{ snapshot.data_date }}</a></td>
+                            <td>{{ snapshot.open_value }}</td>
+                            <td>{{ snapshot.close_value }}</td>
+                            <td>{{ snapshot.low_value }}</td>
+                            <td>{{ snapshot.high_value }}</td>
+                            <td>{{ snapshot.volume }}</td>
+                            <td><a href="{{ url_for('transaction.delete_security_snapshot', snapshot_id=snapshot.id) }}" class="btn btn-primary" role="button">Delete</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>
