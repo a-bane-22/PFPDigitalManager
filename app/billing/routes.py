@@ -14,6 +14,12 @@ import os
 from werkzeug.utils import secure_filename
 
 
+@bp.route('/billing_index')
+@login_required
+def billing_index():
+    return render_template('billing_index.html', title='Billing Index')
+
+
 @bp.route('/view_quarters')
 @login_required
 def view_quarters():

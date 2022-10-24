@@ -3,13 +3,13 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap4
 
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'authentication.login'
-bootstrap = Bootstrap()
+bootstrap = Bootstrap4()
 
 
 def create_app(config_class=Config):

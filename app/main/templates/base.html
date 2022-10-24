@@ -1,121 +1,138 @@
-{% block head %}
+<html lang="en">
+    {% block head %}
     <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        {% block styles %}
+            {{ bootstrap.load_css() }}
+        {% endblock %}
+
+        {% if title %}
+        <title>{{ title }} - PFP Digital Manager</title>
+        {% else %}
+        <title>PFP Digital Manager</title>
+        {% endif %}
     </head>
-{% endblock %}
+    {% endblock %}
+    <body>
+        {% block navbar %}
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbar-collapse-1">
+                        <span class="sr-only">Toggle Navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="{{ url_for('main.index') }}">PFP Digital Manager</a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-collapse-1">
+                    <ul class="nav navbar-nav navbar-right">
+                        {% if current_user.is_anonymous %}
+                            <li class="nav-item"><a class='nav-link' href="{{ url_for('authentication.login') }}">Login</a></li>
+                            <li class="nav-item"><a class='nav-link' href="{{ url_for('authentication.register') }}">Register</a></li>
+                        {% else %}
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">User<span class="caret"></span></a>
+                                <div class="dropdown-menu">
+                                    <a class='dropdown-item' href="{{ url_for('user.view_user', user_id=current_user.id) }}">Profile</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.edit_user', user_id=current_user.id) }}">Edit Profile</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.add_user') }}">Add User</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.view_users') }}">View Users</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Account<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('account.view_accounts') }}">View Accounts</a></li>
+                                    <li><a href="{{ url_for('account.upload_accounts') }}">Upload Accounts</a></li>
+                                    <li><a href="{{ url_for('account.export_accounts') }}">Export Accounts to CSV</a></li>
+                                    <li><a href="{{ url_for('account.delete_all_accounts') }}">Delete All Accounts</a></li><li><a href="{{ url_for('account.add_custodian') }}">Add Custodian</a></li>
+                                    <li><a href="{{ url_for('account.view_custodians') }}">View Custodians</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Analysis<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('analysis.analysis_index') }}">Analysis Home</a></li>
+                                    <li><a href="{{ url_for('analysis.rank_securities') }}">Rank Securities</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Billing<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('billing.billing_index') }}">Billing Home</a></li>
+                                    <li><a href="{{ url_for('billing.add_quarter') }}">Add Quarter</a></li>
+                                    <li><a href="{{ url_for('billing.view_quarters') }}">View Quarters</a></li>
+                                    <li><a href="{{ url_for('billing.view_account_snapshots') }}">View Account Snapshots</a></li>
+                                    <li><a href="{{ url_for('billing.delete_all_account_snapshots') }}">Delete All Account Snapshots</a></li>
+                                    <li><a href="{{ url_for('billing.view_group_snapshots') }}">View Group Snapshots</a></li>
+                                    <li><a href="{{ url_for('billing.delete_all_group_snapshots') }}">Delete All Group Snapshots</a></li>
+                                    <li><a href="{{ url_for('billing.view_fee_schedules') }}">View Fee Schedules</a></li>
+                                    <li><a href="{{ url_for('billing.add_fee_schedule') }}">Add Fee Schedule</a></li>
+                                    <li><a href="{{ url_for('billing.upload_fee_schedules') }}">Upload Fee Schedules</a></li>
+                                    <li><a href="{{ url_for('billing.export_fee_schedules') }}">Export Fee Schedules to CSV</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Client<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('client.add_client') }}">Add Client</a></li>
+                                    <li><a href="{{ url_for('client.upload_clients') }}">Upload Clients</a></li>
+                                    <li><a href="{{ url_for('client.export_clients') }}">Export Clients to CSV</a></li>
+                                    <li><a href="{{ url_for('client.view_clients') }}">View Clients</a></li>
+                                    <li><a href="{{ url_for('client.delete_all_clients') }}">DELETE ALL CLIENTS</a></li>
+                                    <li><a href="{{ url_for('client.add_group') }}">Add Group</a></li>
+                                    <li><a href="{{ url_for('client.view_groups') }}">View Groups</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Task<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('task.add_project') }}">Add Project</a></li>
+                                    <li><a href="{{ url_for('task.view_projects') }}">View Projects</a></li>
+                                    <li><a href="{{ url_for('task.add_task') }}">Add Task</a></li>
+                                    <li><a href="{{ url_for('task.view_tasks') }}">View Tasks</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Transaction<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('transaction.add_transaction_redirect') }}">Add Transaction</a></li>
+                                    <li><a href="{{ url_for('transaction.upload_transactions') }}">Upload Transaction File</a></li>
+                                    <li><a href="{{ url_for('transaction.export_transactions') }}">Export Transactions to CSV</a></li>
+                                    <li><a href="{{ url_for('transaction.view_transactions') }}">View Transactions</a></li>
+                                    <li><a href="{{ url_for('transaction.add_security') }}">Add Security</a></li>
+                                    <li><a href="{{ url_for('transaction.view_securities') }}">View Securities</a></li>
+                                    <li><a href="{{ url_for('transaction.view_positions') }}">View Positions</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item"><a class='nav-link' href="{{ url_for('authentication.logout') }}">Logout</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% endblock %}
 
-{% block navbar %}
-<nav class="navbar navbar-default">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1">
-                <span class="sr-only">Toggle Navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">PFP Digital Manager</a>
+        {% block content %}
+        <div class="container">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-info" role="alert">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% block app_content %}{% endblock %}
         </div>
-        <div class="collapsed navbar-collapse" id="navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                {% if current_user.is_anonymous %}
-                    <li><a href="{{ url_for('authentication.login') }}">Login</a></li>
-                    <li><a href="{{ url_for('authentication.register') }}">Register</a></li>
-                {% else %}
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">User<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('user.view_user', user_id=current_user.id) }}">Profile</a></li>
-                            <li><a href="{{ url_for('user.edit_user', user_id=current_user.id) }}">Edit Profile</a></li>
-                            <li><a href="{{ url_for('user.add_user') }}">Add User</a></li>
-                            <li><a href="{{ url_for('user.view_users') }}">View Users</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Account<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('account.view_accounts') }}">View Accounts</a></li>
-                            <li><a href="{{ url_for('account.upload_accounts') }}">Upload Accounts</a></li>
-                            <li><a href="{{ url_for('account.export_accounts') }}">Export Accounts to CSV</a></li>
-                            <li><a href="{{ url_for('account.delete_all_accounts') }}">Delete All Accounts</a></li><li><a href="{{ url_for('account.add_custodian') }}">Add Custodian</a></li>
-                            <li><a href="{{ url_for('account.view_custodians') }}">View Custodians</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Analysis<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('analysis.rank_securities') }}">Rank Securities</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Billing<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('billing.add_quarter') }}">Add Quarter</a></li>
-                            <li><a href="{{ url_for('billing.view_quarters') }}">View Quarters</a></li>
-                            <li><a href="{{ url_for('billing.view_account_snapshots') }}">View Account Snapshots</a></li>
-                            <li><a href="{{ url_for('billing.delete_all_account_snapshots') }}">Delete All Account Snapshots</a></li>
-                            <li><a href="{{ url_for('billing.view_group_snapshots') }}">View Group Snapshots</a></li>
-                            <li><a href="{{ url_for('billing.delete_all_group_snapshots') }}">Delete All Group Snapshots</a></li>
-                            <li><a href="{{ url_for('billing.view_fee_schedules') }}">View Fee Schedules</a></li>
-                            <li><a href="{{ url_for('billing.add_fee_schedule') }}">Add Fee Schedule</a></li>
-                            <li><a href="{{ url_for('billing.upload_fee_schedules') }}">Upload Fee Schedules</a></li>
-                            <li><a href="{{ url_for('billing.export_fee_schedules') }}">Export Fee Schedules to CSV</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Client<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('client.add_client') }}">Add Client</a></li>
-                            <li><a href="{{ url_for('client.upload_clients') }}">Upload Clients</a></li>
-                            <li><a href="{{ url_for('client.export_clients') }}">Export Clients to CSV</a></li>
-                            <li><a href="{{ url_for('client.view_clients') }}">View Clients</a></li>
-                            <li><a href="{{ url_for('client.delete_all_clients') }}">DELETE ALL CLIENTS</a></li>
-                            <li><a href="{{ url_for('client.add_group') }}">Add Group</a></li>
-                            <li><a href="{{ url_for('client.view_groups') }}">View Groups</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Task<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('task.add_project') }}">Add Project</a></li>
-                            <li><a href="{{ url_for('task.view_projects') }}">View Projects</a></li>
-                            <li><a href="{{ url_for('task.add_task') }}">Add Task</a></li>
-                            <li><a href="{{ url_for('task.view_tasks') }}">View Tasks</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Transaction<span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="{{ url_for('transaction.add_transaction_redirect') }}">Add Transaction</a></li>
-                            <li><a href="{{ url_for('transaction.upload_transactions') }}">Upload Transaction File</a></li>
-                            <li><a href="{{ url_for('transaction.export_transactions') }}">Export Transactions to CSV</a></li>
-                            <li><a href="{{ url_for('transaction.view_transactions') }}">View Transactions</a></li>
-                            <li><a href="{{ url_for('transaction.add_security') }}">Add Security</a></li>
-                            <li><a href="{{ url_for('transaction.view_securities') }}">View Securities</a></li>
-                            <li><a href="{{ url_for('transaction.view_positions') }}">View Positions</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="{{ url_for('authentication.logout') }}">Logout</a></li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
-{% endblock %}
+        {% endblock %}
 
-{% block content %}
-<div class="container">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-info" role="alert">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-
-    {% block app_content %}{% endblock %}
-</div>
-{% endblock %}
+        {% block scripts %}
+            {{ bootstrap.load_js() }}
+        {% endblock %}
+    </body>
+</html>

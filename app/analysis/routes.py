@@ -9,6 +9,12 @@ from app.models import Security
 from alpha_vantage.timeseries import TimeSeries
 
 
+@bp.route('/analysis_index')
+@login_required
+def analysis_index():
+    return render_template('analysis_index.html', title='Analysis Index')
+
+
 @bp.route('/rank_securities', methods=['GET', 'POST'])
 @login_required
 def rank_securities():
