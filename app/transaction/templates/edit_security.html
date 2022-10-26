@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block app_content %}
     <h1>Edit Security</h1>
     <p><b>Instructions: </b>Fill out the form below to edit security <b>{{ security.symbol }}.</b></p>
     <div class="row">
         <div class="col-md-4">
-            {{ wtf.quick_form(form) }}
+            {{ render_form(form) }}
         </div>
     </div>
 {% endblock %}
