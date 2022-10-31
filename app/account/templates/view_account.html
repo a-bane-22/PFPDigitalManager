@@ -36,7 +36,7 @@
                     <tbody>
                     {% for position in positions %}
                         <tr>
-                            <td><a href="{{ url_for('transaction.view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
+                            <td><a href="{{ url_for('security.view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
                             <td>{{ position.quantity }}</td>
                             <td>{{ position.cost_basis }}</td>
                             <td><a href="{{ url_for('transaction.view_position', position_id=position.id) }}">View Position</a></td>
@@ -68,7 +68,7 @@
                         <tr>
                             <td><a href="{{ url_for('transaction.view_transaction', transaction_id=transaction.id) }}">{{ transaction.date }}</a></td>
                             <td>{{ transaction.type }}</td>
-                            <td><a href="{{ url_for('transaction.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
+                            <td><a href="{{ url_for('security.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></td>
                             <td>{{ transaction.quantity }}</td>
                             <td>{{ transaction.share_price }}</td>
                             <td>{{ transaction.gross_amount }}</td>

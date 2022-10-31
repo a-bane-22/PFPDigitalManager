@@ -14,7 +14,7 @@
             <p><b>Date: </b>{{ transaction.date }}</p>
             <p><b>Account: </b><a href="{{ url_for('account.view_account', account_id=transaction.account_id) }}">{{ transaction.get_account_number() }}</a></p>
             <p><b>Type: </b>{{ transaction.type }}</p>
-            <p><b>Security: </b><a href="{{ url_for('transaction.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></p>
+            <p><b>Security: </b><a href="{{ url_for('security.view_security', security_id=transaction.security_id) }}">{{ transaction.get_security_symbol() }}</a></p>
             <p><b>Quantity: </b>{{ transaction.quantity }}</p>
             <p><b>Share Price: </b>{{ transaction.share_price }}</p>
             <p><b>Gross Amount: </b>{{ transaction.gross_amount }}</p>

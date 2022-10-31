@@ -6,28 +6,6 @@ from wtforms.validators import InputRequired, ValidationError, Email, EqualTo
 from app.models import User, Security
 
 
-class NewSecurityForm(FlaskForm):
-    symbol = StringField('Symbol', validators=[InputRequired()])
-    name = StringField('Name', validators=[InputRequired()])
-    description = StringField('Description')
-
-    @staticmethod
-    def validate_symbol(self, symbol):
-        security = Security.query.filter_by(symbol=symbol.data).first()
-        if security is not None:
-            raise ValidationError('A security already exists with that symbol.')
-
-
-class AddSecurityForm(NewSecurityForm):
-    submit = SubmitField('Save')
-
-
-class EditSecurityForm(FlaskForm):
-    name = StringField('Name', validators=[InputRequired()])
-    description = StringField('Description')
-    submit = SubmitField('Save')
-
-
 class TransactionForm(FlaskForm):
     date = DateField('Date')
     type = SelectField('Type')

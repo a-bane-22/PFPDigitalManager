@@ -89,6 +89,13 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Security<span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ url_for('security.add_security') }}">Add Security</a></li>
+                                    <li><a href="{{ url_for('security.view_securities') }}">View Securities</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Task<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{{ url_for('task.add_project') }}">Add Project</a></li>
@@ -104,8 +111,6 @@
                                     <li><a href="{{ url_for('transaction.upload_transactions') }}">Upload Transaction File</a></li>
                                     <li><a href="{{ url_for('transaction.export_transactions') }}">Export Transactions to CSV</a></li>
                                     <li><a href="{{ url_for('transaction.view_transactions') }}">View Transactions</a></li>
-                                    <li><a href="{{ url_for('transaction.add_security') }}">Add Security</a></li>
-                                    <li><a href="{{ url_for('transaction.view_securities') }}">View Securities</a></li>
                                     <li><a href="{{ url_for('transaction.view_positions') }}">View Positions</a></li>
                                 </ul>
                             </li>

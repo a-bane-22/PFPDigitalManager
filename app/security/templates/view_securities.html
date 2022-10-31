@@ -14,7 +14,7 @@
             <tbody>
             {% for security in securities %}
                 <tr>
-                    <td><a href="{{ url_for('transaction.view_security', security_id=security.id) }}">{{ security.symbol }}</a></td>
+                    <td><a href="{{ url_for('security.view_security', security_id=security.id) }}">{{ security.symbol }}</a></td>
                     <td>{{ security.name }}</td>
                     <td>{{ security.description }}</td>
                 </tr>

@@ -17,7 +17,7 @@
             {% for position in positions %}
                 <tr>
                     <td><a href="{{ url_for('account.view_account', account_id=position.account_id) }}">{{ position.get_account_number() }}</a></td>
-                    <td><a href="{{ url_for('transaction.view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
+                    <td><a href="{{ url_for('security.view_security', security_id=position.security_id) }}">{{ position.get_security_symbol() }}</a></td>
                     <td>{{ position.quantity }}</td>
                     <td>{{ position.cost_basis }}</td>
                     <td><a href="{{ url_for('transaction.view_position', position_id=position.id) }}">View Position</a></td>
