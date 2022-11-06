@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>{{ indicator_chart.description }}</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <img class="img-fluid" src="{{ indicator_chart.file_path }}" alt="{{ indicator_chart.description }}"/>
+        </div>
+    </div>
+{% endblock %}

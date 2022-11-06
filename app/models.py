@@ -142,6 +142,7 @@ class Security(db.Model):
     mean = db.Column(db.Float)
     last_snapshot = db.Column(db.Date)
     benchmark_id = db.Column(db.Integer, db.ForeignKey('benchmark.id'))
+    indicator_charts = db.relationship('SecurityIndicatorChart', backref='security', lazy='dynamic')
     snapshots = db.relationship('SecuritySnapshot', backref='security', lazy='dynamic')
     positions = db.relationship('Position', backref='security', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
@@ -161,6 +162,15 @@ class SecuritySnapshot(db.Model):
     hundred_day_average_high = db.Column(db.Float)
     hundred_day_average_low = db.Column(db.Float)
     hundred_day_average_volume = db.Column(db.Integer)
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
+
+
+class SecurityIndicatorChart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True)
+    chart_date = db.Column(db.Date)
+    description = db.Column(db.String(16))
+    file_path = db.Column(db.String(512), unique=True)
     security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 
 

@@ -5,11 +5,15 @@ from app.models import (Security, SecuritySnapshot)
 from app.security.forms import (AddSecurityForm, EditSecurityForm, UploadFileForm, ExportToFileForm)
 from app.security import bp
 from app.route_helpers import (get_security_choices, upload_file)
+from app.security.route_helpers import line_generator
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
 from alpha_vantage.timeseries import TimeSeries
+from alpha_vantage.techindicators import TechIndicators
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
 
 
 @bp.route('/view_securities')
@@ -106,6 +110,60 @@ def update_security_data(security_id):
         flash('Data is current')
     return redirect(url_for('security.view_security', security_id=security_id))
 
+
+@bp.route('/view_security_momentum/<security_id>')
+@login_required
+def view_security_momentum(security_id):
+    security = Security.query.get(int(security_id))
+    file_name = os.path.join('technical_indicators/momentum/' +
+                             "{}_momentum.png".format(security.symbol))
+    ti = TechIndicators(key=os.environ['ALPHAVANTAGE_API_KEY'])
+    data, meta_data = ti.get_mom(symbol=security.symbol, interval='daily',
+                                 time_period=20, series_type='close')
+    dates = [key for key in data.keys()]
+    values = [float(data[key]['MOM']) for key in data.keys()]
+    point_pairs = dict([(i, (dates[i], values[i])) for i in range(100)])
+    df = pd.DataFrame(point_pairs)
+    fig = px.line(x=df.loc[0], y=df.loc[1])
+    fig.add_trace()
+    fig.write_image(file_name)
+    return redirect(url_for('security.view_security', security_id=security_id))
+
+
+@bp.route('/generate_wma_crossover/<security_id>')
+@login_required
+def generate_wma_crossover(security_id):
+    period_0 = 20
+    period_1 = 100
+    security = Security.query.get(int(security_id))
+    file_name = os.path.join('technical_indicators/wma_crossover/' +
+                             '{}_wma_crossover.png'.format(security.symbol))
+    ti = TechIndicators(key=os.environ['ALPHAVANTAGE_API_KEY'])
+    data_0, meta_data_0 = ti.get_wma(symbol=security.symbol, interval='daily',
+                                     time_period=period_0, series_type='close')
+    data_1, meta_data_1 = ti.get_wma(symbol=security.symbol, interval='daily',
+                                     time_period=period_1, series_type='close')
+    dates_0 = [key for key in data_0.keys()]
+    dates_1 = [key for key in data_1.keys()]
+    values_0 = [float(data_0[key]['WMA']) for key in data_0.keys()]
+    values_1 = [float(data_1[key]['WMA']) for key in data_1.keys()]
+    point_pairs_0 = dict([(i, (dates_0[i], values_0[i])) for i in range(100)])
+    point_pairs_1 = dict([(i, (dates_1[i], values_1[i])) for i in range(100)])
+    df_0 = pd.DataFrame(point_pairs_0)
+    df_1 = pd.DataFrame(point_pairs_1)
+    line_specification_0 = line_generator(line_number=0)
+    line_specification_1 = line_generator(line_number=1)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_0.loc[0],
+                             y=df_0.loc[1],
+                             line=line_specification_0,
+                             mode='lines'))
+    fig.add_trace(go.Scatter(x=df_1.loc[0],
+                             y=df_1.loc[1],
+                             line=line_specification_1,
+                             mode='lines'))
+    fig.write_image(file_name)
+    return redirect(url_for('security.view_security', security_id=security_id))
 
 @bp.route('/view_security_snapshot/<snapshot_id>')
 @login_required

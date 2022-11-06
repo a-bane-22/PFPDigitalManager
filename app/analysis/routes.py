@@ -15,12 +15,6 @@ def analysis_index():
     return render_template('analysis_index.html', title='Analysis Index')
 
 
-@bp.route('/security_momentum', methods=['GET', 'POST'])
-@login_required
-def security_momentum():
-    return render_template('view_security_momentum.html', title='View Security Momentum')
-
-
 @bp.route('/rank_securities', methods=['GET', 'POST'])
 @login_required
 def rank_securities():
