@@ -169,7 +169,7 @@ class SecurityIndicatorChart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(16), index=True)
     chart_date = db.Column(db.Date)
-    description = db.Column(db.String(16))
+    description = db.Column(db.String(512))
     file_path = db.Column(db.String(512), unique=True)
     security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 

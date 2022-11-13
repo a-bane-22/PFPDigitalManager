@@ -1,11 +1,12 @@
 from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 from app import db
-from app.models import (Security, SecuritySnapshot)
-from app.security.forms import (AddSecurityForm, EditSecurityForm, UploadFileForm, ExportToFileForm)
+from app.models import (Security, SecuritySnapshot, SecurityIndicatorChart)
+from app.security.forms import (AddSecurityForm, EditSecurityForm, WMACrossoverForm,
+                                UploadFileForm, ExportToFileForm)
 from app.security import bp
 from app.route_helpers import (get_security_choices, upload_file)
-from app.security.route_helpers import line_generator
+from app.security.route_helpers import generate_wma_crossover_chart
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
@@ -130,40 +131,66 @@ def view_security_momentum(security_id):
     return redirect(url_for('security.view_security', security_id=security_id))
 
 
-@bp.route('/generate_wma_crossover/<security_id>')
+@bp.route('/generate_wma_crossover/<security_id>', methods=['GET', 'POST'])
 @login_required
 def generate_wma_crossover(security_id):
-    period_0 = 20
-    period_1 = 100
-    security = Security.query.get(int(security_id))
-    file_name = os.path.join('technical_indicators/wma_crossover/' +
-                             '{}_wma_crossover.png'.format(security.symbol))
-    ti = TechIndicators(key=os.environ['ALPHAVANTAGE_API_KEY'])
-    data_0, meta_data_0 = ti.get_wma(symbol=security.symbol, interval='daily',
-                                     time_period=period_0, series_type='close')
-    data_1, meta_data_1 = ti.get_wma(symbol=security.symbol, interval='daily',
-                                     time_period=period_1, series_type='close')
-    dates_0 = [key for key in data_0.keys()]
-    dates_1 = [key for key in data_1.keys()]
-    values_0 = [float(data_0[key]['WMA']) for key in data_0.keys()]
-    values_1 = [float(data_1[key]['WMA']) for key in data_1.keys()]
-    point_pairs_0 = dict([(i, (dates_0[i], values_0[i])) for i in range(100)])
-    point_pairs_1 = dict([(i, (dates_1[i], values_1[i])) for i in range(100)])
-    df_0 = pd.DataFrame(point_pairs_0)
-    df_1 = pd.DataFrame(point_pairs_1)
-    line_specification_0 = line_generator(line_number=0)
-    line_specification_1 = line_generator(line_number=1)
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_0.loc[0],
-                             y=df_0.loc[1],
-                             line=line_specification_0,
-                             mode='lines'))
-    fig.add_trace(go.Scatter(x=df_1.loc[0],
-                             y=df_1.loc[1],
-                             line=line_specification_1,
-                             mode='lines'))
-    fig.write_image(file_name)
-    return redirect(url_for('security.view_security', security_id=security_id))
+    form = WMACrossoverForm()
+    if form.validate_on_submit():
+        security = Security.query.get(int(security_id))
+        num_points = form.num_points.data
+        period_0 = form.period_0.data
+        period_1 = form.period_1.data
+        interval = 'daily'
+        series_type = 'close'
+        file_name = generate_wma_crossover_chart(symbol=security.symbol,
+                                                 num_points=num_points,
+                                                 period_0=period_0,
+                                                 period_1=period_1,
+                                                 interval=interval,
+                                                 series_type=series_type)
+        description = ('{symbol} WMA Crossover - {period_0}, '
+                       '{period_1} {interval} {series_type}').format(symbol=security.symbol,
+                                                                     period_0=period_0,
+                                                                     period_1=period_1,
+                                                                     interval=interval,
+                                                                     series_type=series_type)
+        chart = SecurityIndicatorChart(symbol=security.symbol,
+                                       chart_date=date.today(),
+                                       description=description,
+                                       file_path=file_name,
+                                       security_id=security.id)
+        db.session.add(chart)
+        db.session.commit()
+        return redirect(url_for('security.view_security_indicator_chart', chart_id=chart.id))
+    return render_template('generate_wma_crossover.html', title='Generate WMA Crossover', form=form)
+
+
+@bp.route('/view_security_indicator_chart/<chart_id>')
+@login_required
+def view_security_indicator_chart(chart_id):
+    indicator_chart = SecurityIndicatorChart.query.get(int(chart_id))
+    return render_template('view_security_indicator_chart.html',
+                           title='Security Indicator Chart',
+                           indicator_chart=indicator_chart)
+
+
+@bp.route('/view_security_indicator_charts')
+@login_required
+def view_security_indicator_charts():
+    indicator_charts = SecurityIndicatorChart.query.all()
+    return render_template('view_security_indicator_charts.html',
+                           title='Security Indicator Charts',
+                           indicator_charts=indicator_charts)
+
+
+@bp.route('/delete_security_indicator_chart/<chart_id>')
+@login_required
+def delete_security_indicator_chart(chart_id):
+    chart = SecurityIndicatorChart.query.get(int(chart_id))
+    db.session.delete(chart)
+    db.session.commit()
+    return redirect(url_for('security.view_security_indicator_charts'))
+
 
 @bp.route('/view_security_snapshot/<snapshot_id>')
 @login_required

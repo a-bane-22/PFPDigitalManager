@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Security Indicator Charts</h1>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Symbol</th>
+                    <th>Description</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for chart in indicator_charts %}
+                <tr>
+                    <td>{{ chart.chart_date }}</td>
+                    <td><a href="{{ url_for('security.view_security', security_id=chart.security_id) }}">{{ chart.symbol }}</a></td>
+                    <td><a href="{{ url_for('security.view_security_indicator_chart', chart_id=chart.id) }}">{{ chart.description }}</a></td>
+                    <td><a href="{{ url_for('security.delete_security_indicator_chart', chart_id=chart.id) }}" class="btn btn-primary" role="button">Delete</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
