@@ -6,7 +6,7 @@ from app.security.forms import (AddSecurityForm, EditSecurityForm, WMACrossoverF
                                 UploadFileForm, ExportToFileForm)
 from app.security import bp
 from app.route_helpers import (get_security_choices, upload_file)
-from app.security.route_helpers import generate_wma_crossover_chart
+from app.security.route_helpers import generate_daily_close_wma_crossover_chart, get_crossover_points
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
@@ -131,29 +131,23 @@ def view_security_momentum(security_id):
     return redirect(url_for('security.view_security', security_id=security_id))
 
 
-@bp.route('/generate_wma_crossover/<security_id>', methods=['GET', 'POST'])
+@bp.route('/generate_daily_close_wma_crossover/<security_id>', methods=['GET', 'POST'])
 @login_required
-def generate_wma_crossover(security_id):
+def generate_daily_close_wma_crossover(security_id):
     form = WMACrossoverForm()
     if form.validate_on_submit():
         security = Security.query.get(int(security_id))
         num_points = form.num_points.data
         period_0 = form.period_0.data
         period_1 = form.period_1.data
-        interval = 'daily'
-        series_type = 'close'
-        file_name = generate_wma_crossover_chart(symbol=security.symbol,
-                                                 num_points=num_points,
-                                                 period_0=period_0,
-                                                 period_1=period_1,
-                                                 interval=interval,
-                                                 series_type=series_type)
+        file_name = generate_daily_close_wma_crossover_chart(symbol=security.symbol,
+                                                             num_points=num_points,
+                                                             period_0=period_0,
+                                                             period_1=period_1)
         description = ('{symbol} WMA Crossover - {period_0}, '
-                       '{period_1} {interval} {series_type}').format(symbol=security.symbol,
-                                                                     period_0=period_0,
-                                                                     period_1=period_1,
-                                                                     interval=interval,
-                                                                     series_type=series_type)
+                       '{period_1} Daily Close').format(symbol=security.symbol,
+                                                        period_0=period_0,
+                                                        period_1=period_1)
         chart = SecurityIndicatorChart(symbol=security.symbol,
                                        chart_date=date.today(),
                                        description=description,
@@ -161,7 +155,7 @@ def generate_wma_crossover(security_id):
                                        security_id=security.id)
         db.session.add(chart)
         db.session.commit()
-        return redirect(url_for('security.view_security_indicator_chart', chart_id=chart.id))
+        return redirect(url_for('security.view_security', security_id=security.id))
     return render_template('generate_wma_crossover.html', title='Generate WMA Crossover', form=form)
 
 
