@@ -38,6 +38,28 @@ def get_daily_price_data(symbol):
     return pd.DataFrame(data_points)
 
 
+# Pre:  price_data is an iterable of DailyAdjustedPrice object
+#       price_type is one of 'open', 'close', 'adjusted_close',
+#        'high', or 'low'
+# Post: RV = date_list, value_list where date_list contains strings
+#            representing dates and value_list contains floats corresponding
+#            to the daily price as determined by price_type
+def get_daily_adjusted_price_data_by_type(price_data, price_type):
+    date_list = [price.date for price in price_data]
+    value_list = []
+    if price_type == 'open':
+        value_list = [price.open for price in price_data]
+    elif price_type == 'close':
+        value_list = [price.close for price in price_data]
+    elif price_type == 'adjusted_close':
+        value_list = [price.adjusted_close for price in price_data]
+    elif price_type == 'high':
+        value_list = [price.high for price in price_data]
+    elif price_type == 'low':
+        value_list = [price.low for price in price_data]
+    return date_list, value_list
+
+
 # Pre:  symbol is a string representing a security
 #       num_points is a positive integer representing the # of data points
 #       period is a positive integer representing the # of intervals to

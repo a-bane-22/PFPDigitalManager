@@ -6,8 +6,11 @@
         <div class="col-md-12">
             <a href="{{ url_for('security.edit_security', security_id=security.id) }}" class="btn btn-primary" role="button">Edit Security</a>
             <a href="{{ url_for('security.update_security_data', security_id=security.id) }}" class="btn btn-primary" role="button">Update Security Data</a>
+            <a href="{{ url_for('security.store_daily_adjusted_price_data', security_id=security.id) }}" class="btn btn-primary" role="button">Store Daily Adjusted Price</a>
+            <a href="{{ url_for('security.delete_daily_adjusted_price_data', security_id=security.id) }}" class="btn btn-primary" role="button">Delete Daily Adjusted Price</a>
             <a href="{{ url_for('security.view_security_momentum', security_id=security.id) }}" class="btn btn-primary" role="button">View Momentum</a>
             <a href="{{ url_for('security.generate_daily_close_wma_crossover', security_id=security.id) }}" class="btn btn-primary" role="button">Generate WMA Crossover</a>
+            <a href="{{ url_for('security.generate_daily_price_chart', security_id=security.id) }}" class="btn btn-primary" role="button">Generate Daily Price Chart</a>
         </div>
     </div>
     <div class="row">

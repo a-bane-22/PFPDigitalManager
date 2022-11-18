@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import (StringField, SubmitField, IntegerField)
+from wtforms import (StringField, SubmitField, IntegerField, SelectField)
 from wtforms.validators import InputRequired, ValidationError
 from app.models import Security
 
@@ -22,6 +22,16 @@ class EditSecurityForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired()])
     description = StringField('Description')
     submit = SubmitField('Save')
+
+
+class DailyAdjustedPriceForm(FlaskForm):
+    price_type = SelectField('Price Type', choices=[('open', 'Open'),
+                                                    ('close', 'Close'),
+                                                    ('adjusted_close',
+                                                     'Adjusted Close'),
+                                                    ('high', 'High'),
+                                                    ('low', 'Low')])
+    submit = SubmitField('Submit')
 
 
 class WMACrossoverForm(FlaskForm):

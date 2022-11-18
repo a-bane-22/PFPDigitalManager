@@ -144,9 +144,24 @@ class Security(db.Model):
     benchmark_id = db.Column(db.Integer, db.ForeignKey('benchmark.id'))
     indicator_charts = db.relationship('SecurityIndicatorChart', backref='security', lazy='dynamic')
     snapshots = db.relationship('SecuritySnapshot', backref='security', lazy='dynamic')
+    adjusted_dailies = db.relationship('SecurityDailyAdjusted', backref='security', lazy='dynamic')
     positions = db.relationship('Position', backref='security', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
 
+
+class SecurityDailyAdjusted(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True)
+    date = db.Column(db.Date)
+    open = db.Column(db.Float)
+    close = db.Column(db.Float)
+    adjusted_close = db.Column(db.Float)
+    high = db.Column(db.Float)
+    low = db.Column(db.Float)
+    volume = db.Column(db.Integer)
+    dividend_amount = db.Column(db.Float)
+    split_coefficient = db.Column(db.Float)
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 
 class SecuritySnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)

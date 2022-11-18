@@ -1,12 +1,16 @@
 from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 from app import db
-from app.models import (Security, SecuritySnapshot, SecurityIndicatorChart)
+from app.models import (Security, SecurityDailyAdjusted, SecuritySnapshot, SecurityIndicatorChart)
 from app.security.forms import (AddSecurityForm, EditSecurityForm, WMACrossoverForm,
-                                UploadFileForm, ExportToFileForm)
+                                DailyAdjustedPriceForm, UploadFileForm,
+                                ExportToFileForm)
 from app.security import bp
 from app.route_helpers import (get_security_choices, upload_file)
-from app.security.route_helpers import generate_daily_close_wma_crossover_chart, get_crossover_points
+from app.security.route_helpers import (get_daily_adjusted_price_data_by_type,
+                                        generate_daily_close_wma_crossover_chart,
+                                        get_crossover_points,
+                                        line_generator)
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
@@ -110,6 +114,62 @@ def update_security_data(security_id):
     else:
         flash('Data is current')
     return redirect(url_for('security.view_security', security_id=security_id))
+
+
+@bp.route('/store_daily_adjusted_price_data/<security_id>')
+@login_required
+def store_daily_adjusted_price_data(security_id):
+    security = Security.query.get(int(security_id))
+    ts = TimeSeries(key=os.environ['ALPHAVANTAGE_API_KEY'])
+    data, meta_data = ts.get_daily_adjusted(symbol=security.symbol,
+                                            outputsize='compact')
+    snapshots = [SecurityDailyAdjusted(symbol=security.symbol,
+                                       date=date.fromisoformat(key),
+                                       open=float(data[key]['1. open']),
+                                       close=float(data[key]['4. close']),
+                                       adjusted_close=float(data[key]['5. adjusted close']),
+                                       high=float(data[key]['2. high']),
+                                       low=float(data[key]['3. low']),
+                                       volume=int(data[key]['6. volume']),
+                                       dividend_amount=float(data[key]['7. dividend amount']),
+                                       split_coefficient=float(data[key]['8. split coefficient']),
+                                       security_id=security.id) for key in data.keys()]
+    db.session.add_all(instances=snapshots)
+    db.session.commit()
+    return redirect(url_for('security.view_security', security_id=security.id))
+
+
+@bp.route('/generate_daily_price_chart/<security_id>', methods=['GET', 'POST'])
+@login_required
+def generate_daily_price_chart(security_id):
+    security = Security.query.get(int(security_id))
+    form = DailyAdjustedPriceForm()
+    if form.validate_on_submit():
+        price_type = form.price_type.data
+        date_list, value_list = get_daily_adjusted_price_data_by_type(price_type=price_type,
+                                                                      price_data=security.adjusted_dailies)
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=date_list,
+                                 y=value_list,
+                                 line=line_generator(line_number=1),
+                                 mode='lines',
+                                 name='Daily Price'))
+        file_name = f'{security.symbol}_daily_{price_type}_price_data.png'
+        file_path = os.path.join('technical_indicators/' + file_name)
+        fig.write_image(file_path)
+        return redirect(url_for('security.view_security', security_id=security.id))
+    return render_template('generate_daily_price_chart.html',
+                           title='Generate Daily Price Chart',
+                           form=form)
+
+@bp.route('/delete_daily_adjusted_price_data/<security_id>')
+@login_required
+def delete_daily_adjusted_price_data(security_id):
+    security = Security.query.get(int(security_id))
+    for data_point in security.adjusted_dailies:
+        db.session.delete(data_point)
+    db.session.commit()
+    return redirect(url_for('security.view_security', security_id=security.id))
 
 
 @bp.route('/view_security_momentum/<security_id>')
