@@ -4,7 +4,8 @@ from app import db
 from app.models import (Account, Security, Position, Transaction)
 from app.transaction.forms import (TransactionForm, UploadFileForm, ExportToFileForm)
 from app.transaction import bp
-from app.route_helpers import (get_security_choices, upload_file)
+from app.route_helpers import (get_security_choices,
+                               process_transaction_csv_file)
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
@@ -106,39 +107,7 @@ def edit_transaction(transaction_id):
 def upload_transactions():
     form = UploadFileForm()
     if form.validate_on_submit():
-        f = form.upload_file.data
-        lines = upload_file(file_object=f)
-        for line in lines:
-            data = line.split(',')
-            transaction_date = date.fromisoformat(data[0].strip())
-            account_number = data[1].strip()
-            transaction_type = data[2].strip()
-            symbol = data[3].strip()
-            name = data[4].strip()
-            quantity = float(data[5].strip())
-            share_price = float(data[6].strip())
-            gross_amount = float(data[7].strip())
-            description = data[8].strip()
-            account = Account.query.filter_by(account_number=account_number).first()
-            if account is not None:
-                security = Security.query.filter_by(symbol=symbol).first()
-                if security is None:
-                    security = Security(symbol=symbol, name=name)
-                    db.session.add(security)
-                    db.session.commit()
-                position = Position.query.filter_by(account_id=account.id, security_id=security.id).first()
-                if position is None:
-                    position = Position(account_id=account.id, security_id=security.id, quantity=0, cost_basis=0)
-                    db.session.add(position)
-                    db.session.commit()
-                transaction = Transaction(date=transaction_date, type=transaction_type, quantity=quantity,
-                                          share_price=share_price, gross_amount=gross_amount, description=description,
-                                          account_id=account.id, security_id=security.id, position_id=position.id)
-                position.add_transaction(transaction_type=transaction_type, quantity=transaction.quantity,
-                                         gross_amount=transaction.gross_amount)
-                db.session.add(transaction)
-                db.session.add(position)
-        db.session.commit()
+        process_transaction_csv_file(file_object=form.upload_file.data)
         return redirect(url_for('transaction.view_transactions'))
     return render_template('upload_transaction_file.html', title='Upload Transaction File', form=form)
 

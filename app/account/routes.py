@@ -5,7 +5,8 @@ from app.models import (Client, Account, Custodian, Quarter)
 from app.account.forms import (AccountForm, CustodianForm, UploadFileForm,
                                ExportToFileForm)
 from app.account import bp
-from app.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file)
+from app.route_helpers import (get_custodian_choices, get_fee_schedule_choices, upload_file,
+                               process_account_csv_file)
 from werkzeug.utils import secure_filename
 import os
 
@@ -58,28 +59,7 @@ def upload_accounts():
     form = UploadFileForm()
     if form.validate_on_submit():
         f = form.upload_file.data
-        lines = upload_file(file_object=f)
-        for line in lines:
-            data = line.split(',')
-            account_number = data[0].strip()
-            description = data[1].strip()
-            client_first = data[2].strip()
-            client_last = data[3].strip()
-            custodian_name = data[4].strip()
-            billable = (data[5].strip().lower() == 'true')
-            discretionary = (data[6].strip().lower() == 'true')
-            client = Client.query.filter_by(first_name=client_first, last_name=client_last).first()
-            if client is not None:
-                custodian = Custodian.query.filter_by(name=custodian_name).first()
-                if custodian is None:
-                    custodian = Custodian(name=custodian_name)
-                    db.session.add(custodian)
-                    db.session.commit()
-                account = Account(account_number=account_number, description=description, billable=billable,
-                                  discretionary=discretionary, client_id=client.id, group_id=client.group_id,
-                                  custodian_id=custodian.id)
-                db.session.add(account)
-        db.session.commit()
+        process_account_csv_file(file_object=f)
         return redirect(url_for('account.view_accounts'))
     return render_template('upload_account_file.html', title='Upload Accounts', form=form)
 

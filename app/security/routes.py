@@ -3,8 +3,8 @@ from flask_login import login_required
 from app import db
 from app.models import (Security, SecurityDailyAdjusted, SecuritySnapshot, SecurityIndicatorChart)
 from app.security.forms import (AddSecurityForm, EditSecurityForm, WMACrossoverForm,
-                                DailyAdjustedPriceForm, UploadFileForm,
-                                ExportToFileForm)
+                                DailyAdjustedPriceForm, GenerateTechnicalIndicatorChartForm,
+                                UploadFileForm, ExportToFileForm)
 from app.security import bp
 from app.route_helpers import (get_security_choices, upload_file)
 from app.security.route_helpers import (get_daily_adjusted_price_data_by_type,
@@ -137,6 +137,28 @@ def store_daily_adjusted_price_data(security_id):
     db.session.add_all(instances=snapshots)
     db.session.commit()
     return redirect(url_for('security.view_security', security_id=security.id))
+
+
+@bp.route('/generate_technical_indicator_chart', methods=['GET', 'POST'])
+@login_required
+def generate_technical_indicator_chart():
+    form = GenerateTechnicalIndicatorChartForm()
+    form.security.choices = get_security_choices()
+    form.indicator.choices = [(1, 'WMA Crossover')]
+    if form.validate_on_submit():
+        security = Security.query.get(form.security.data)
+        indicator = form.indicator.data
+        match indicator:
+            case 1:
+                print('Case 1')
+                generate_daily_close_wma_crossover_chart(symbol=security.symbol)
+            case _:
+                print('Case Default')
+                pass
+        return redirect(url_for('security.view_security', security_id=security.id))
+    return render_template('generate_technical_indicator_chart.html',
+                           title='Generate Technical Indicator Chart',
+                           form=form)
 
 
 @bp.route('/generate_daily_price_chart/<security_id>', methods=['GET', 'POST'])

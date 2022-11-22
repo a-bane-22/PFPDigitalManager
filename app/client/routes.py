@@ -5,7 +5,7 @@ from app.models import Client, Group
 from app.client.forms import (ClientInformationForm, GroupForm, AssignClientsForm, AssignClientForm,
                               UploadFileForm, ExportToFileForm)
 from app.client import bp
-from app.route_helpers import upload_file
+from app.route_helpers import upload_file, process_client_csv_file
 from datetime import date
 import os
 from werkzeug.utils import secure_filename
@@ -47,32 +47,7 @@ def upload_clients():
     form = UploadFileForm()
     if form.validate_on_submit():
         f = form.upload_file.data
-        lines = upload_file(file_object=f)
-        for line in lines:
-            data = line.split(',')
-            first = data[0].strip()
-            middle = data[1].strip()
-            last = data[2].strip()
-            dob = date.fromisoformat(data[3].strip())
-            email = data[4].strip()
-            cell = data[5].strip()
-            work = data[6].strip()
-            home = data[7].strip()
-            group_name = data[8].strip()
-            group_id = None
-            assigned = False
-            if group_name is not None:
-                assigned = True
-                group = Group.query.filter_by(name=group_name).first()
-                if group is None:
-                    group = Group(name=group_name)
-                    db.session.add(group)
-                    db.session.commit()
-                group_id = group.id
-            client = Client(first_name=first, middle_name=middle, last_name=last, dob=dob, email=email,
-                            cell_phone=cell, work_phone=work, home_phone=home, group_id=group_id, assigned=assigned)
-            db.session.add(client)
-        db.session.commit()
+        process_client_csv_file(file_object=f)
         return redirect(url_for('client.view_clients'))
     return render_template('upload_client_file.html', title='Upload Clients', form=form)
 

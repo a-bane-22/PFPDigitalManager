@@ -1,67 +1,32 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <div class="row">
-        <div class="col-md-4">
-            <h1>Implemented</h1>
-            <ul>
-                <li>Clients
-                    <ul>
-                        <li>Create, edit, and delete</li>
-                        <li>View individual client</li>
-                        <li>View all clients</li>
-                        <li>Assign client to group</li>
-                    </ul>
-                </li>
-                <li>Accounts
-                    <ul>
-                        <li>Create, edit, and delete</li>
-                        <li>Assign fee schedule</li>
-                        <li>View individual account</li>
-                        <li>View all accounts</li>
-                    </ul>
-                </li>
-                <li>Group
-                    <ul>
-                        <li>Create, edit, and delete</li>
-                        <li>View individual group</li>
-                        <li>View all groups</li>
-                    </ul>
-                </li>
-                <li>Custodian
-                    <ul>
-                        <li>Create, edit, and delete</li>
-                        <li>View individual custodian</li>
-                        <li>View all custodians</li>
-                    </ul>
-                </li>
-                <li>Quarter
-                    <ul>
-                        <li>Create from file upload</li>
-                    </ul>
-                </li>
-                <li>Account Snapshot
-                    <ul>
-                        <li>Create, edit, and delete</li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <div class="col-md-4">
-            <h1>In Process</h1>
-            <ul>
-                <li>Calculate account snapshot fee</li>
-                <li>Calculate quarter management fee</li>
-            </ul>
-        </div>
-        <div class="col-md-4">
-            <h1>Not Started</h1>
-            <ul>
-                <li>Client notes</li>
-                <li>Final index.html design</li>
-                <li>Process and compile quarter data and display</li>
-                <li>Output compiled/processed quarter data to file</li>
-            </ul>
+    <div class="container p-3 my-3 border">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="container p-3 my-3 border">
+                    <h1>Get Started</h1>
+                    <p>Use this link to get started by uploading clients, accounts, and transactions.</p>
+                    <a href="{{ url_for('main.get_started') }}">Get Started</a>
+                </div>
+                <div class="container p-3 my-3 border">
+                    <h1>Upload Data</h1>
+                    <p>Use the following links to import data from a file.</p>
+                    <a href="{{ url_for('client.upload_clients') }}">Upload Clients</a><br/>
+                    <a href="{{ url_for('account.upload_accounts') }}">Upload Accounts</a><br/>
+                    <a href="{{ url_for('billing.upload_fee_schedules') }}">Upload Fee Schedules</a><br/>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="container p-3 my-3 border">
+                    <h1>Technical Indicators</h1>
+                    <p>Use the following link to generate technical indicator charts.</p>
+                    <a href="{{ url_for('security.generate_technical_indicator_chart') }}">Generate Technical Indicator Chart</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+
+            </div>
         </div>
     </div>
 {% endblock %}

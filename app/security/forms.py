@@ -24,6 +24,12 @@ class EditSecurityForm(FlaskForm):
     submit = SubmitField('Save')
 
 
+class GenerateTechnicalIndicatorChartForm(FlaskForm):
+    security = SelectField('Security')
+    indicator = SelectField('Technical Indicator', coerce=int)
+    submit = SubmitField('Submit')
+
+
 class DailyAdjustedPriceForm(FlaskForm):
     price_type = SelectField('Price Type', choices=[('open', 'Open'),
                                                     ('close', 'Close'),
