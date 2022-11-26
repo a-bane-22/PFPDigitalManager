@@ -10,6 +10,7 @@ from app.route_helpers import (get_security_choices, upload_file)
 from app.security.route_helpers import (get_daily_adjusted_price_data_by_type,
                                         generate_daily_close_wma_crossover_chart,
                                         get_crossover_points,
+                                        store_daily_adjusted_price_data,
                                         line_generator)
 from datetime import date
 import os
@@ -46,6 +47,7 @@ def add_security():
         security = Security(symbol=form.symbol.data, name=form.name.data, description=form.description.data)
         db.session.add(security)
         db.session.commit()
+        store_daily_adjusted_price_data(security_id=security.id)
         return redirect(url_for('security.view_security', security_id=security.id))
     return render_template('add_security.html', title='Add Security', form=form)
 
@@ -116,49 +118,51 @@ def update_security_data(security_id):
     return redirect(url_for('security.view_security', security_id=security_id))
 
 
-@bp.route('/store_daily_adjusted_price_data/<security_id>')
-@login_required
-def store_daily_adjusted_price_data(security_id):
-    security = Security.query.get(int(security_id))
-    ts = TimeSeries(key=os.environ['ALPHAVANTAGE_API_KEY'])
-    data, meta_data = ts.get_daily_adjusted(symbol=security.symbol,
-                                            outputsize='compact')
-    snapshots = [SecurityDailyAdjusted(symbol=security.symbol,
-                                       date=date.fromisoformat(key),
-                                       open=float(data[key]['1. open']),
-                                       close=float(data[key]['4. close']),
-                                       adjusted_close=float(data[key]['5. adjusted close']),
-                                       high=float(data[key]['2. high']),
-                                       low=float(data[key]['3. low']),
-                                       volume=int(data[key]['6. volume']),
-                                       dividend_amount=float(data[key]['7. dividend amount']),
-                                       split_coefficient=float(data[key]['8. split coefficient']),
-                                       security_id=security.id) for key in data.keys()]
-    db.session.add_all(instances=snapshots)
-    db.session.commit()
-    return redirect(url_for('security.view_security', security_id=security.id))
-
-
 @bp.route('/generate_technical_indicator_chart', methods=['GET', 'POST'])
 @login_required
 def generate_technical_indicator_chart():
     form = GenerateTechnicalIndicatorChartForm()
     form.security.choices = get_security_choices()
-    form.indicator.choices = [(1, 'WMA Crossover')]
+    form.indicator.choices = [(1, 'WMA Crossover'),
+                              (2, 'Daily Price'),
+                              (3, 'Volume')]
     if form.validate_on_submit():
         security = Security.query.get(form.security.data)
         indicator = form.indicator.data
         match indicator:
             case 1:
-                print('Case 1')
-                generate_daily_close_wma_crossover_chart(symbol=security.symbol)
+                return redirect(url_for('security.generate_daily_close_wma_crossover',
+                                        security_id=security.id))
+            case 2:
+                return redirect(url_for('security.generate_daily_price_chart',
+                                        security_id=security.id))
+            case 3:
+                return redirect(url_for('security.generate_daily_volume_chart',
+                                        security_id=security.id))
             case _:
-                print('Case Default')
                 pass
         return redirect(url_for('security.view_security', security_id=security.id))
     return render_template('generate_technical_indicator_chart.html',
                            title='Generate Technical Indicator Chart',
                            form=form)
+
+
+@bp.route('/generate_daily_volume_chart/<security_id>')
+@login_required
+def generate_daily_volume_chart(security_id):
+    security = Security.query.get(int(security_id))
+    date_list, value_list = get_daily_adjusted_price_data_by_type(price_type='volume',
+                                                                  price_data=security.adjusted_dailies)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=date_list,
+                             y=value_list,
+                             line=line_generator(line_number=1),
+                             mode='lines',
+                             name='Daily Volume'))
+    file_name = f'{security.symbol}_daily_volume_data.png'
+    file_path = os.path.join('technical_indicators/' + file_name)
+    fig.write_image(file_path)
+    return redirect(url_for('security.view_security', security_id=security.id))
 
 
 @bp.route('/generate_daily_price_chart/<security_id>', methods=['GET', 'POST'])
@@ -183,6 +187,7 @@ def generate_daily_price_chart(security_id):
     return render_template('generate_daily_price_chart.html',
                            title='Generate Daily Price Chart',
                            form=form)
+
 
 @bp.route('/delete_daily_adjusted_price_data/<security_id>')
 @login_required

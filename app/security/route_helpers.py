@@ -1,3 +1,5 @@
+from app import db
+from app.models import (Security, SecurityDailyAdjusted)
 from alpha_vantage.techindicators import TechIndicators
 from alpha_vantage.timeseries import TimeSeries
 import pandas as pd
@@ -25,7 +27,7 @@ def legend_title_generator(title):
 
 
 # Pre:  symbol is a string representing a security
-# Post: RV is a pandas dataFrame object containing price data for the security
+# Post: RV is a pandas dataFrame object containing adjusted close price data
 #        for the last 100 days
 def get_daily_price_data(symbol):
     ts = TimeSeries(key=os.environ['ALPHAVANTAGE_API_KEY'])
@@ -57,6 +59,8 @@ def get_daily_adjusted_price_data_by_type(price_data, price_type):
         value_list = [price.high for price in price_data]
     elif price_type == 'low':
         value_list = [price.low for price in price_data]
+    elif price_type == 'volume':
+        value_list = [price.volume for price in price_data]
     return date_list, value_list
 
 
@@ -94,7 +98,7 @@ def get_crossover_trades(df_0, df_1):
         if prev_val_0 < prev_val_1 and curr_val_0 > curr_val_1:
             crossover_points.append(('BUY', df_2.loc[index][0]))
         elif prev_val_0 > prev_val_1 and curr_val_0 < curr_val_1:
-            crossover_points.append('SELL', df_2.loc[index][0])
+            crossover_points.append(('SELL', df_2.loc[index][0]))
         prev_val_0 = curr_val_0
         prev_val_1 = curr_val_1
     return crossover_points
@@ -186,3 +190,23 @@ def process_daily_close_wma_crossover_data(securities, period_0, period_1):
         for trade in crossover_trades:
             crossovers.append((security.symbol, trade))
     return crossovers
+
+
+def store_daily_adjusted_price_data(security_id):
+    security = Security.query.get(int(security_id))
+    ts = TimeSeries(key=os.environ['ALPHAVANTAGE_API_KEY'])
+    data, meta_data = ts.get_daily_adjusted(symbol=security.symbol,
+                                            outputsize='compact')
+    snapshots = [SecurityDailyAdjusted(symbol=security.symbol,
+                                       date=date.fromisoformat(key),
+                                       open=float(data[key]['1. open']),
+                                       close=float(data[key]['4. close']),
+                                       adjusted_close=float(data[key]['5. adjusted close']),
+                                       high=float(data[key]['2. high']),
+                                       low=float(data[key]['3. low']),
+                                       volume=int(data[key]['6. volume']),
+                                       dividend_amount=float(data[key]['7. dividend amount']),
+                                       split_coefficient=float(data[key]['8. split coefficient']),
+                                       security_id=security.id) for key in data.keys()]
+    db.session.add_all(instances=snapshots)
+    db.session.commit()

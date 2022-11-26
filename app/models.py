@@ -163,6 +163,7 @@ class SecurityDailyAdjusted(db.Model):
     split_coefficient = db.Column(db.Float)
     security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 
+
 class SecuritySnapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(16), index=True)
