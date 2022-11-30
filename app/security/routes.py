@@ -71,6 +71,7 @@ def edit_security(security_id):
 @bp.route('/upload_securities', methods=['GET', 'POST'])
 @login_required
 def upload_securities():
+
     return render_template('upload_securities.html', title='Upload Securities')
 
 

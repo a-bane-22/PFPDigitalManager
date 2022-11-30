@@ -35,15 +35,6 @@
                             <li class="nav-item"><a class='nav-link' href="{{ url_for('authentication.register') }}">Register</a></li>
                         {% else %}
                             <li class="nav-item dropdown">
-                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">User<span class="caret"></span></a>
-                                <div class="dropdown-menu">
-                                    <a class='dropdown-item' href="{{ url_for('user.view_user', user_id=current_user.id) }}">Profile</a>
-                                    <a class='dropdown-item' href="{{ url_for('user.edit_user', user_id=current_user.id) }}">Edit Profile</a>
-                                    <a class='dropdown-item' href="{{ url_for('user.add_user') }}">Add User</a>
-                                    <a class='dropdown-item' href="{{ url_for('user.view_users') }}">View Users</a>
-                                </div>
-                            </li>
-                            <li class="nav-item dropdown">
                                 <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Account<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{{ url_for('account.view_accounts') }}">View Accounts</a></li>
@@ -89,6 +80,13 @@
                                 </ul>
                             </li>
                             <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Option<span class="caret"></span></a>
+                                <div class="dropdown-menu">
+                                    <a class='dropdown-item' href="{{ url_for('option.view_option_quotes') }}">View Option Quotes</a>
+                                    <a class="dropdown-item" href="{{ url_for('option.upload_option_quotes') }}">Upload Option Quotes</a>
+                                </div>
+                            </li>
+                            <li class="nav-item dropdown">
                                 <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">Security<span class="caret"></span></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{{ url_for('security.add_security') }}">Add Security</a></li>
@@ -114,6 +112,15 @@
                                     <li><a href="{{ url_for('transaction.view_transactions') }}">View Transactions</a></li>
                                     <li><a href="{{ url_for('transaction.view_positions') }}">View Positions</a></li>
                                 </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="dropdown-toggle nav-link" data-toggle="dropdown" href="#">User<span class="caret"></span></a>
+                                <div class="dropdown-menu">
+                                    <a class='dropdown-item' href="{{ url_for('user.view_user', user_id=current_user.id) }}">Profile</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.edit_user', user_id=current_user.id) }}">Edit Profile</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.add_user') }}">Add User</a>
+                                    <a class='dropdown-item' href="{{ url_for('user.view_users') }}">View Users</a>
+                                </div>
                             </li>
                             <li class="nav-item"><a class='nav-link' href="{{ url_for('authentication.logout') }}">Logout</a></li>
                         {% endif %}

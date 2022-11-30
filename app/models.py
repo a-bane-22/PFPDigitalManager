@@ -147,6 +147,7 @@ class Security(db.Model):
     adjusted_dailies = db.relationship('SecurityDailyAdjusted', backref='security', lazy='dynamic')
     positions = db.relationship('Position', backref='security', lazy='dynamic')
     transactions = db.relationship('Transaction', backref='security', lazy='dynamic')
+    options = db.relationship('OptionQuote', backref='security', lazy='dynamic')
 
 
 class SecurityDailyAdjusted(db.Model):
@@ -187,6 +188,24 @@ class SecurityIndicatorChart(db.Model):
     chart_date = db.Column(db.Date)
     description = db.Column(db.String(512))
     file_path = db.Column(db.String(512), unique=True)
+    security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
+
+
+class OptionQuote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(16), index=True)
+    quote_date = db.Column(db.Date)
+    type = db.Column(db.String(4), index=True)
+    expiration_date = db.Column(db.Date)
+    strike_price = db.Column(db.Float)
+    bid = db.Column(db.Float)
+    ask = db.Column(db.Float)
+    last = db.Column(db.Float)
+    high = db.Column(db.Float)
+    low = db.Column(db.Float)
+    change = db.Column(db.Float)
+    volume = db.Column(db.Float)
+    open_interest = db.Column(db.Float)
     security_id = db.Column(db.Integer, db.ForeignKey('security.id'))
 
 

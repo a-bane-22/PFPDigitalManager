@@ -39,6 +39,9 @@ def create_app(config_class=Config):
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
 
+    from app.option import bp as option_bp
+    app.register_blueprint(option_bp)
+
     from app.security import bp as security_bp
     app.register_blueprint(security_bp)
 

@@ -9,6 +9,7 @@
             <a href="{{ url_for('security.view_security_momentum', security_id=security.id) }}" class="btn btn-primary" role="button">View Momentum</a>
             <a href="{{ url_for('security.generate_daily_close_wma_crossover', security_id=security.id) }}" class="btn btn-primary" role="button">Generate WMA Crossover</a>
             <a href="{{ url_for('security.generate_daily_price_chart', security_id=security.id) }}" class="btn btn-primary" role="button">Generate Daily Price Chart</a>
+            <a href="{{ url_for('option.add_option_quote', security_id=security.id) }}" class="btn btn-primary" role="button">Add Option Quote</a>
         </div>
     </div>
     <div class="container p-3 my-3 border">

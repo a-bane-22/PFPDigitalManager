@@ -1,6 +1,7 @@
 from app import db
 from app.models import (Client, Account, Transaction, Custodian,
-                        Position, Group, FeeSchedule, Security)
+                        Position, Group, FeeSchedule, Security,
+                        OptionQuote)
 from werkzeug.utils import secure_filename
 import os
 import xml.etree.ElementTree as ET
@@ -146,3 +147,32 @@ def process_transaction_csv_file(file_object):
             db.session.add(transaction)
             db.session.add(position)
     db.session.commit()
+
+
+# Pre:
+# Post:
+def process_option_quote_csv_file(file_object):
+    lines = upload_file(file_object=file_object)
+    data = [line.split(',') for line in lines]
+    quote_date = date.today()
+    for line in data:
+        symbol = line[0].strip()
+        security = Security.query.filter_by(symbol=symbol).first()
+        if security is not None:
+            quote = OptionQuote(symbol=symbol,
+                                security_id=security.id,
+                                quote_date=quote_date,
+                                type=line[1].strip().lower(),
+                                expiration_date=date.fromisoformat(line[2].strip()),
+                                strike_price=float(line[3].strip()),
+                                bid=float(line[4].strip()),
+                                ask=float(line[5].strip()),
+                                last=float(line[6].strip()),
+                                high=float(line[7].strip()),
+                                low=float(line[8].strip()),
+                                change=float(line[9].strip()),
+                                volume=float(line[10].strip()),
+                                open_interest=float(line[11].strip()))
+            db.session.add(quote)
+    db.session.commit()
+
