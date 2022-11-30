@@ -19,6 +19,7 @@
                     <th>Change</th>
                     <th>Volume</th>
                     <th>Open Interest</th>
+                    <th>Delete Quote</th>
                 </tr>
             </thead>
             <tbody>
@@ -37,6 +38,7 @@
                     <td>{{ quote.change }}</td>
                     <td>{{ quote.volume }}</td>
                     <td>{{ quote.open_interest }}</td>
+                    <td><a href="{{ url_for('option.delete_option_quote', quote_id=quote.id) }}" class="btn btn-danger" role="button">Delete</a></td>
                 </tr>
             {% endfor %}
             </tbody>

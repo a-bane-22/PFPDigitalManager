@@ -65,3 +65,12 @@ def upload_option_quotes():
     return render_template('upload_option_quotes.html',
                            title='Upload Option Quotes',
                            form=form)
+
+
+@bp.route('/delete_option_quote/<quote_id>')
+@login_required
+def delete_option_quote(quote_id):
+    quote = OptionQuote.query.get(int(quote_id))
+    db.session.delete(quote)
+    db.session.commit()
+    return redirect(url_for('option.view_option_quotes'))

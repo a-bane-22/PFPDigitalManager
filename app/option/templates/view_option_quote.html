@@ -3,51 +3,60 @@
 {% block app_content %}
     <div class="container my-3 p-3 border">
         <h1>Option Quote</h1>
-        <div class="table-responsive">
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td>Expiration Date</td>
-                        <td>{{ quote.expiration_date }}</td>
-                    </tr>
-                    <tr>
-                        <td>Strike Price</td>
-                        <td>{{ quote.strike_price }}</td>
-                    </tr>
-                    <tr>
-                        <td>Ask</td>
-                        <td>{{ quote.ask }}</td>
-                    </tr>
-                    <tr>
-                        <td>Bid</td>
-                        <td>{{ quote.bid }}</td>
-                    </tr>
-                    <tr>
-                        <td>Last</td>
-                        <td>{{ quote.last }}</td>
-                    </tr>
-                    <tr>
-                        <td>High</td>
-                        <td>{{ quote.high }}</td>
-                    </tr>
-                    <tr>
-                        <td>Low</td>
-                        <td>{{ quote.low }}</td>
-                    </tr>
-                    <tr>
-                        <td>Change</td>
-                        <td>{{ quote.change }}</td>
-                    </tr>
-                    <tr>
-                        <td>Volume</td>
-                        <td>{{ quote.volume }}</td>
-                    </tr>
-                    <tr>
-                        <td>Open Interest</td>
-                        <td>{{ quote.open_interest }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="row">
+            <div class="col-md-12">
+                <a href="{{ url_for('option.delete_option_quote', quote_id=quote.id) }}" class="btn btn-danger" role="button">Delete Quote</a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Expiration Date</td>
+                                <td>{{ quote.expiration_date }}</td>
+                            </tr>
+                            <tr>
+                                <td>Strike Price</td>
+                                <td>{{ quote.strike_price }}</td>
+                            </tr>
+                            <tr>
+                                <td>Ask</td>
+                                <td>{{ quote.ask }}</td>
+                            </tr>
+                            <tr>
+                                <td>Bid</td>
+                                <td>{{ quote.bid }}</td>
+                            </tr>
+                            <tr>
+                                <td>Last</td>
+                                <td>{{ quote.last }}</td>
+                            </tr>
+                            <tr>
+                                <td>High</td>
+                                <td>{{ quote.high }}</td>
+                            </tr>
+                            <tr>
+                                <td>Low</td>
+                                <td>{{ quote.low }}</td>
+                            </tr>
+                            <tr>
+                                <td>Change</td>
+                                <td>{{ quote.change }}</td>
+                            </tr>
+                            <tr>
+                                <td>Volume</td>
+                                <td>{{ quote.volume }}</td>
+                            </tr>
+                            <tr>
+                                <td>Open Interest</td>
+                                <td>{{ quote.open_interest }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
